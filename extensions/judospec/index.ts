@@ -190,7 +190,9 @@ export default function activate(pi: ExtensionAPI) {
       const lines = [
         "  /judo:status        All changes status",
         "  /judo:research      Research selected domains",
-        "  /judo:research-all  Research all domains in parallel",
+        "  /judo:plan          Create or revise a proposal with design decisions",
+        "  /judo:apply         Execute change — generate DAG, run agents, verify, fix",
+        "  /judo:archive       Archive completed change — merge knowledge, commit",
         "",
       ];
       pi.sendMessage({

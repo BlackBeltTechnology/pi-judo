@@ -19,16 +19,15 @@
       "./themes"
     ]
   },
-  "dependencies": {
-    "pi-flows": "git+ssh://git@github.com:BlackBeltTechnology/pi-flows.git"
-  },
   "peerDependencies": {
+    "pi-flows": "*",
     "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-coding-agent": "*",
     "@mariozechner/pi-tui": "*",
     "@sinclair/typebox": "*"
   },
   "devDependencies": {
+    "pi-flows": "git+ssh://git@github.com:BlackBeltTechnology/pi-flows.git",
     "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-coding-agent": "*",
     "@mariozechner/pi-tui": "*",

@@ -4,6 +4,8 @@ description: Model mutations via CLI
 model: @modelling
 thinking: high
 tools: model_cli
+inputs:
+  - task_description
 context:
   - plan/proposal.md
   - plan/design.md

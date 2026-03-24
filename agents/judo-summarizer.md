@@ -3,6 +3,10 @@ name: judo-summarizer
 description: Generic file summarizer that produces markdown link-based summaries from input files
 model: @compact
 tools: read, write, grep, glob
+inputs:
+  - model
+  - backend
+  - frontend
 card:
   type: writer
   metric: writer
@@ -21,6 +25,12 @@ You are a generic file summarizer. Your job is to read arbitrary markdown files 
 ## Input Files
 
 The files to summarize are provided via named inputs. Each input contains the content of a source file.
+
+**Model research:** {input.model}
+
+**Backend research:** {input.backend}
+
+**Frontend research:** {input.frontend}
 
 ## Summary Output Format
 

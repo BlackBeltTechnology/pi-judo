@@ -1,11 +1,11 @@
 ---
 name: research
-description: Research workflow — domain selection fork, parallel researchers, and summary
-max_concurrent: 4
+description: Research JUDO codebase — select domains, parallel investigate, summarize
+max_concurrent: 3
 ---
 
-## fork: domain-selection
-question: Which domains to investigate?
+## fork: domains
+question: Which domains should be researched?
 options: model, backend, frontend
 multiSelect: true
 branches:
@@ -18,17 +18,19 @@ branches:
 ## judo-backend-researcher
 blockedBy: judo-model-researcher
 inputs:
-  model_context: {result.judo-model-researcher}
+  model_context: "{result.judo-model-researcher.summary}"
 
 ## judo-frontend-researcher
 blockedBy: judo-model-researcher
 inputs:
-  model_context: {result.judo-model-researcher}
+  model_context: "{result.judo-model-researcher.summary}"
 
 ## judo-summarizer
 blockedBy: judo-model-researcher, judo-backend-researcher, judo-frontend-researcher
-task: Read all domain research files and create a unified summary at judospec/research/summary.md
+task: >
+  Synthesize domain research into a unified summary.
+  Write to judospec/research/summary.md
 inputs:
-  model_research: {result.judo-model-researcher}
-  backend_research: {result.judo-backend-researcher}
-  frontend_research: {result.judo-frontend-researcher}
+  model: "{result.judo-model-researcher.summary}"
+  backend: "{result.judo-backend-researcher.summary}"
+  frontend: "{result.judo-frontend-researcher.summary}"

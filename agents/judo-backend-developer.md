@@ -59,8 +59,8 @@ If model mutations were performed in a prior step, their output is available her
 - Follow the existing package structure and naming conventions in the project
 - Implement proper error handling using JUDO's error framework
 - Use dependency injection patterns consistent with the existing codebase
-- Write unit tests when the integration-tester is not in the chain
-- Run tests after implementation if integration-tester is not in the chain
+- Write unit tests when the integration-tester is not in the flow
+- Run tests after implementation if integration-tester is not in the flow
 - NEVER run `./judo.sh build` — that is reserved for the verifier agent
 - NEVER use `rm -rf` — use targeted file operations instead
 

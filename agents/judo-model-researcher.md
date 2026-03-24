@@ -13,6 +13,7 @@ architect:
 access:
   write:
     - "judospec/research/model.md"
+    - "judospec/changes/*/research/model.md"
 ---
 
 You are the JUDO model researcher. You investigate the ESM (Entity Specific Model)

@@ -1,6 +1,8 @@
 ---
 name: plan
 description: Create or revise a proposal with design decisions and GAP resolution
+task_required: true
+task_prompt: "Describe what you want to build or change:"
 max_concurrent: 2
 ---
 
@@ -25,7 +27,11 @@ task: >
   MODE: Pre-proposal design discussion.
   Analyze the research and decompose into design decision categories.
   Write design.md with decisions and open questions.
-on_complete: create-proposal
+
+## conditional: after-discuss
+check: design-discuss.summary
+present: create-proposal
+absent: create-proposal
 
 ## create-proposal
 agent: judo-proposal-writer
@@ -35,6 +41,11 @@ task: >
   If design.md exists, incorporate those decisions.
 inputs:
   design: "{result.design-discuss.summary}"
+
+## conditional: after-create
+check: create-proposal.summary
+present: resolve-gaps
+absent: resolve-gaps
 
 ## fork: resolve-gaps
 question: >
@@ -53,15 +64,14 @@ agent: judo-proposal-writer
 task: >
   MODE: Gap resolution.
   Read proposal.md, find all GAP markers.
-  Resolve gaps using the user's answers: {fork.resolve-gaps.answer}
-  {fork.resolve-gaps.notes}
+  Resolve gaps using the user's decision and notes.
   Rewrite proposal.md with gaps filled. Regenerate tasks.md.
 
 ## agent-loop-decision: gap-check
 agent: flow-decision
 task: >
   Check the proposal for GAP markers.
-  Proposal artifacts: {result.create-proposal.artifacts}
+  Proposal artifacts: {result.create-proposal.artifacts}{result.revise-proposal.artifacts}{result.discuss-proposal.artifacts}
   Gap filler result: {result.gap-filler.artifacts}
   If unresolved GAP markers remain, choose "loop". If clean, choose "exit".
 loop_target: resolve-gaps
@@ -82,27 +92,32 @@ options:
   - Discuss design decisions
   - Start fresh
 allowNotes: true
-allowCustom: true
 branches:
-  Revise the proposal: revise-writer
-  Discuss design decisions: post-proposal-discuss
-  Start fresh: create-proposal
+  Revise the proposal: revise-proposal
+  Discuss design decisions: discuss-proposal
+  Start fresh: design-questions
 
-## revise-writer
+## revise-proposal
 agent: judo-proposal-writer
 task: >
   MODE: Revision.
-  Read existing proposal.md. The user wants to change:
-  {fork.revise-intent.answer}
-  {fork.revise-intent.notes}
+  Read existing proposal.md. Apply the user's requested changes.
   Insert GAP markers at locations that need decisions.
   Do NOT resolve the gaps — just mark them.
-on_complete: gap-check
 
-## post-proposal-discuss
+## conditional: after-revise
+check: revise-proposal.summary
+present: gap-check
+absent: gap-check
+
+## discuss-proposal
 agent: judo-proposal-writer
 task: >
   MODE: Post-proposal discussion.
   Scan proposal.md for GAP markers and unresolved decisions.
   Present findings in your summary.
-on_complete: gap-check
+
+## conditional: after-discuss-review
+check: discuss-proposal.summary
+present: gap-check
+absent: gap-check

@@ -14,18 +14,22 @@ branches:
   frontend: judo-frontend-researcher
 
 ## judo-model-researcher
+agent: judo-model-researcher
 
 ## judo-backend-researcher
+agent: judo-backend-researcher
 blockedBy: judo-model-researcher
 inputs:
   model_context: "{result.judo-model-researcher.summary}"
 
 ## judo-frontend-researcher
+agent: judo-frontend-researcher
 blockedBy: judo-model-researcher
 inputs:
   model_context: "{result.judo-model-researcher.summary}"
 
 ## judo-summarizer
+agent: judo-summarizer
 blockedBy: judo-model-researcher, judo-backend-researcher, judo-frontend-researcher
 task: >
   Synthesize domain research into a unified summary.

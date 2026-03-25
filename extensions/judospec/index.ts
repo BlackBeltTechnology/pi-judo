@@ -108,9 +108,12 @@ export default function activate(pi: ExtensionAPI) {
     const guard = createModelProtectionGuard();
     pi.on("tool_call", guard);
 
-    // Register subagent guard for spawned agent processes (via pi-flows)
+    // Register subagent guard for spawned agent sessions (via pi-flows)
+    // Use factory-based registration (no file path needed)
     pi.events?.emit("flow:register-guard-extension", {
-      path: join(dirname(__filename), "subagent-guard.ts"),
+      factory: (piApi: any) => {
+        piApi.on("tool_call", createModelProtectionGuard());
+      },
     });
 
     // Register model_cli tool

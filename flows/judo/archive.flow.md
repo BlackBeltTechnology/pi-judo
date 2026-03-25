@@ -5,12 +5,14 @@ max_concurrent: 1
 ---
 
 ## judo-archiver
+agent: judo-archiver
 task: >
   Archive this change.
   Merge change research into global judospec/research/ files.
   Append entry to judospec/CHANGELOG.md.
 
 ## judo-git-manager
+agent: judo-git-manager
 blockedBy: judo-archiver
 task: >
   Commit archive changes.

@@ -1,10 +1,13 @@
 ---
 name: apply
 description: Execute a change — generate DAG from tasks, run agents, verify, fix, commit
+task_required: true
+task_prompt: "Describe what change to apply:"
 max_concurrent: 4
 ---
 
 ## judo-flow-writer
+agent: judo-flow-writer
 task: >
   Read the proposal and tasks for this change.
   Generate an execution flow as a .flow.md file.
@@ -22,6 +25,7 @@ path: judospec/changes/*/apply.flow.md
 on_complete: judo-verifier
 
 ## judo-verifier
+agent: judo-verifier
 task: >
   Build the project and verify acceptance criteria from the proposal.
   Write verification report to verification.md.
@@ -29,6 +33,7 @@ inputs:
   implementation_output: "{result.apply-execution.summary}"
 
 ## judo-backpropagator
+agent: judo-backpropagator
 task: >
   Analyze verification gaps and generate a fix flow.
   Gaps: {result.judo-verifier.artifacts}
@@ -52,11 +57,13 @@ exit_target: judo-summarizer
 max_iterations: 3
 
 ## judo-summarizer
+agent: judo-summarizer
 task: >
   Generate a change summary from the implementation and verification results.
   Verifier result: {result.judo-verifier.summary}
 
 ## judo-git-manager
+agent: judo-git-manager
 blockedBy: judo-summarizer
 task: >
   Commit all changes.

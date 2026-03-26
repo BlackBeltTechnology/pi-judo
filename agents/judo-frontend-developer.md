@@ -35,16 +35,16 @@ theme modifications, and component overrides within JUDO frontend paths.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Model and Backend Changes Context
 
 If model or backend changes were performed in prior steps, their outputs are
 available here:
 
-{input.model_output}
+${{input.model_output}}
 
-{input.backend_output}
+${{input.backend_output}}
 
 ## Implementation Guidelines
 

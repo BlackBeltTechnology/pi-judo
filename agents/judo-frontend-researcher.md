@@ -29,11 +29,11 @@ You do NOT have bash access. You do NOT have model_cli access.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Model Context
 
-{input.model_context}
+${{input.model_context}}
 
 ## Research Guidelines
 

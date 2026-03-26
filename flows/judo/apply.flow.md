@@ -20,7 +20,8 @@ task: >
   - Do NOT include verifier, backpropagator, summarizer, or git-manager steps
   Write the flow using flow_write tool.
 
-## flow-ref: apply-execution
+## apply-execution
+stepType: flow-ref
 path: judospec/changes/*/apply.flow.md
 on_complete: judo-verifier
 
@@ -30,26 +31,28 @@ task: >
   Build the project and verify acceptance criteria from the proposal.
   Write verification report to verification.md.
 inputs:
-  implementation_output: "{result.apply-execution.summary}"
+  implementation_output: "${{result.apply-execution.summary}}"
 
 ## judo-backpropagator
 agent: judo-backpropagator
 task: >
   Analyze verification gaps and generate a fix flow.
-  Gaps: {result.judo-verifier.artifacts}
+  Gaps: ${{result.judo-verifier.artifacts}}
   Write the fix flow using flow_write tool.
 inputs:
-  verification_gaps: "{result.judo-verifier.artifacts}"
+  verification_gaps: "${{result.judo-verifier.artifacts}}"
 
-## flow-ref: fix-execution
+## fix-execution
+stepType: flow-ref
 path: judospec/changes/*/fix-*.flow.md
 on_complete: judo-verifier
 
-## agent-loop-decision: verify-loop
+## verify-loop
+stepType: agent-loop-decision
 agent: flow-decision
 task: >
-  Evaluate the verification result: {result.judo-verifier.summary}
-  Verification artifacts: {result.judo-verifier.artifacts}
+  Evaluate the verification result: ${{result.judo-verifier.summary}}
+  Verification artifacts: ${{result.judo-verifier.artifacts}}
   If gaps remain, choose "loop" to run another fix cycle.
   If all acceptance criteria pass, choose "exit".
 loop_target: judo-backpropagator
@@ -60,11 +63,11 @@ max_iterations: 3
 agent: judo-summarizer
 task: >
   Generate a change summary from the implementation and verification results.
-  Verifier result: {result.judo-verifier.summary}
+  Verifier result: ${{result.judo-verifier.summary}}
 
 ## judo-git-manager
 agent: judo-git-manager
 blockedBy: judo-summarizer
 task: >
   Commit all changes.
-  Verification: {result.judo-verifier.summary}
+  Verification: ${{result.judo-verifier.summary}}

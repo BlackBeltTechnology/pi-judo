@@ -38,11 +38,11 @@ and languages outside the JUDO framework.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Implementation Context
 
-{input.implementation_context}
+${{input.implementation_context}}
 
 ## Implementation Guidelines
 

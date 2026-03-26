@@ -19,14 +19,14 @@ knowledge base and update the changelog when a change is archived.
 
 ## Your Task
 
-{task}
+${{task}}
 
 The task text above contains the change context (name, directory). Extract the
 change name and directory path from it.
 
 ## Change Summary
 
-{input.change_summary}
+${{input.change_summary}}
 
 ## Archive Workflow
 
@@ -42,7 +42,7 @@ change name and directory path from it.
 - Merge research files by appending new findings, not overwriting existing content
 - Resolve conflicts between change-specific and global research
 - Changelog entries should be concise but informative
-- Include date, change name (from `{task}`), and summary of modifications
+- Include date, change name (from `${{task}}`), and summary of modifications
 
 ## Output
 

@@ -1,18 +1,8 @@
 ---
-name: research
-description: Research JUDO codebase — select domains, parallel investigate, summarize
+name: research-all
+description: Research all JUDO domains in parallel — model, backend, frontend
 max_concurrent: 3
 ---
-
-## domains
-stepType: fork
-question: Which domains should be researched?
-options: model, backend, frontend
-multiSelect: true
-branches:
-  model: judo-model-researcher
-  backend: judo-backend-researcher
-  frontend: judo-frontend-researcher
 
 ## judo-model-researcher
 agent: judo-model-researcher

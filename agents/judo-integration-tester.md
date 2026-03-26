@@ -29,15 +29,15 @@ using the `judo-runtime-core-testkit` framework.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Implementation and Model Context
 
 If backend implementation or model changes were performed in prior steps:
 
-{input.backend_output}
+${{input.backend_output}}
 
-{input.model_output}
+${{input.model_output}}
 
 ## Testing Guidelines
 

@@ -24,7 +24,7 @@ explore the model instead of reading files.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Research Guidelines
 

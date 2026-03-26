@@ -20,17 +20,17 @@ You are a generic file summarizer. Your job is to read arbitrary markdown files 
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Input Files
 
 The files to summarize are provided via named inputs. Each input contains the content of a source file.
 
-**Model research:** {input.model}
+**Model research:** ${{input.model}}
 
-**Backend research:** {input.backend}
+**Backend research:** ${{input.backend}}
 
-**Frontend research:** {input.frontend}
+**Frontend research:** ${{input.frontend}}
 
 ## Summary Output Format
 

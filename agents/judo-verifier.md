@@ -30,11 +30,11 @@ to run `./judo.sh build`. You have unrestricted bash access — no deny list.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Implementation Context
 
-{input.implementation_output}
+${{input.implementation_output}}
 
 ## Verification Workflow
 

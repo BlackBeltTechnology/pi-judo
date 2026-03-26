@@ -29,13 +29,13 @@ for frontend scenarios, verifying complete user workflows through the UI.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Build Context
 
 Verifier build output (E2E needs a passing build first):
 
-{input.verifier_build}
+${{input.verifier_build}}
 
 ## Testing Guidelines
 

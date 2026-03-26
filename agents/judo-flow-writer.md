@@ -25,14 +25,14 @@ summarization, and git commit.
 
 ## Your Task
 
-{task}
+${{task}}
 
 The task text above contains the change directory path. Extract it and use it
 to locate `tasks.md` and to determine where to write the generated flow.
 
 ## Workflow
 
-1. **Parse the change directory** from `{task}` — look for a path like
+1. **Parse the change directory** from `${{task}}` — look for a path like
    `judospec/changes/<name>/`
 2. **Read tasks.md** from that directory
 3. **Parse tasks** — extract task ID, subject, assigned agent, description,

@@ -1,7 +1,7 @@
 ---
 name: judo-model-designer
 description: Model mutations via CLI
-model: @modelling
+model: @coding
 thinking: high
 tools: model_cli
 inputs:
@@ -24,7 +24,7 @@ tools, and NO grep. Your only interface to the system is the model CLI.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Mandatory Workflow
 

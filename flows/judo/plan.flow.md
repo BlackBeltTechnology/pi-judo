@@ -6,12 +6,14 @@ task_prompt: "Describe what you want to build or change:"
 max_concurrent: 2
 ---
 
-## conditional: has-proposal
+## has-proposal
+stepType: conditional
 check: judo-proposal-writer.artifacts
 present: revise-intent
 absent: design-questions
 
-## fork: design-questions
+## design-questions
+stepType: fork
 question: >
   Review design decisions interactively before creating the proposal?
 options:
@@ -28,7 +30,8 @@ task: >
   Analyze the research and decompose into design decision categories.
   Write design.md with decisions and open questions.
 
-## conditional: after-discuss
+## after-discuss
+stepType: conditional
 check: design-discuss.summary
 present: create-proposal
 absent: create-proposal
@@ -40,14 +43,16 @@ task: >
   Create proposal.md and tasks.md based on research findings.
   If design.md exists, incorporate those decisions.
 inputs:
-  design: "{result.design-discuss.summary}"
+  design: "${{result.design-discuss.summary}}"
 
-## conditional: after-create
+## after-create
+stepType: conditional
 check: create-proposal.summary
 present: resolve-gaps
 absent: resolve-gaps
 
-## fork: resolve-gaps
+## resolve-gaps
+stepType: fork
 question: >
   The proposal has unresolved design decisions (GAP markers).
   Review and provide your answers:
@@ -67,12 +72,13 @@ task: >
   Resolve gaps using the user's decision and notes.
   Rewrite proposal.md with gaps filled. Regenerate tasks.md.
 
-## agent-loop-decision: gap-check
+## gap-check
+stepType: agent-loop-decision
 agent: flow-decision
 task: >
   Check the proposal for GAP markers.
-  Proposal artifacts: {result.create-proposal.artifacts}{result.revise-proposal.artifacts}{result.discuss-proposal.artifacts}
-  Gap filler result: {result.gap-filler.artifacts}
+  Proposal artifacts: ${{result.create-proposal.artifacts}}${{result.revise-proposal.artifacts}}${{result.discuss-proposal.artifacts}}
+  Gap filler result: ${{result.gap-filler.artifacts}}
   If unresolved GAP markers remain, choose "loop". If clean, choose "exit".
 loop_target: resolve-gaps
 exit_target: plan-complete
@@ -84,7 +90,8 @@ task: >
   Summarize the completed plan.
   Read proposal.md and tasks.md, produce a brief overview.
 
-## fork: revise-intent
+## revise-intent
+stepType: fork
 question: >
   A proposal already exists. What would you like to do?
 options:
@@ -105,7 +112,8 @@ task: >
   Insert GAP markers at locations that need decisions.
   Do NOT resolve the gaps — just mark them.
 
-## conditional: after-revise
+## after-revise
+stepType: conditional
 check: revise-proposal.summary
 present: gap-check
 absent: gap-check
@@ -117,7 +125,8 @@ task: >
   Scan proposal.md for GAP markers and unresolved decisions.
   Present findings in your summary.
 
-## conditional: after-discuss-review
+## after-discuss-review
+stepType: conditional
 check: discuss-proposal.summary
 present: gap-check
 absent: gap-check

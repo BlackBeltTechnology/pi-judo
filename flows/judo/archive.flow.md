@@ -16,4 +16,4 @@ agent: judo-git-manager
 blockedBy: judo-archiver
 task: >
   Commit archive changes.
-  Archiver result: {result.judo-archiver.summary}
+  Archiver result: ${{result.judo-archiver.summary}}

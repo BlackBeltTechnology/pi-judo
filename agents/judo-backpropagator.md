@@ -30,11 +30,11 @@ each problem. You do NOT have bash access.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Verification Gaps
 
-{input.verification_gaps}
+${{input.verification_gaps}}
 
 ## Backpropagation Workflow
 
@@ -72,7 +72,7 @@ each problem. You do NOT have bash access.
 
 When the user describes an issue during resume (rather than verification gaps),
 analyze the described issue and generate a fix flow that addresses it. The issue
-description will be in `{task}` or `{input.verification_gaps}`.
+description will be in `${{task}}` or `${{input.verification_gaps}}`.
 
 ## Output
 

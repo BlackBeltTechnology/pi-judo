@@ -27,7 +27,7 @@ in your task. You do NOT have bash access.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Modes
 
@@ -58,11 +58,11 @@ your summary for the orchestrating flow.
 
 ## Research Input
 
-{input.research}
+${{input.research}}
 
 ## Design Context
 
-{input.design}
+${{input.design}}
 
 ## Research Handling
 

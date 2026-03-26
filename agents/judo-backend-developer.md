@@ -39,13 +39,13 @@ interceptors, and validators within JUDO backend paths.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Model Changes Context
 
 If model mutations were performed in a prior step, their output is available here:
 
-{input.model_output}
+${{input.model_output}}
 
 ## Implementation Guidelines
 

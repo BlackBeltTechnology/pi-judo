@@ -1,35 +1,150 @@
 ---
 name: judo-backend-docs
-description: JUDO backend development documentation. Covers custom operations, interceptors, data access (DAO), error handling, type mappings, authentication, i18n, and general patterns. Use when implementing or modifying backend logic in a JUDO application.
+description: Backend development guide for JUDO applications. Covers custom operations, interceptors, validators, data access, and error handling.
+disable-model-invocation: false
+user-invocable: false
+agent: general-purpose
 ---
 
-# JUDO Backend Development
+# Backend Development Guide
 
-This skill provides comprehensive reference documentation for backend development in the JUDO framework. JUDO generates a full Java backend from an ESM (Entity State Model), but most real-world applications require custom business logic layered on top of the generated code.
+## Overview
+
+Backend development in northwind involves implementing custom business logic in Java while leveraging the JUDO-generated SDK and runtime infrastructure.
+
+**Note**: Throughout this document, `northwind` refers to the application name from `judo.properties` (app_name property). Package names, file paths, and generated artifacts use this value.
 
 ## Key Concepts
 
-**Custom Operations** are the primary extension mechanism. When a model defines an operation (bound or unbound), the code generator emits a `.default` implementation file. Developers override this by creating a non-`.default` implementation in the same package. The build system picks up the custom implementation and ignores the default. Service operations and exported operations follow the same pattern but differ in lifecycle and visibility.
+- **Model-Driven Development**: The application's structure, including entities, services, and APIs, is defined in high-level models. All development work is grounded in these models.
+- **Code Generation**: The JUDO platform automatically generates a significant portion of the codebase (like SDKs and REST endpoints) from the models. This ensures consistency and reduces boilerplate code.
+- **Custom Implementation**: Your primary focus as a developer is to implement custom business logic in specific, designated directories (`application/app/`, `application/interceptors/`). These areas are protected from the code generation process.
+- **Checksum Protection**: To prevent accidental edits to generated files, a checksum system is in place. Modifying a generated file will cause the build to fail unless it's explicitly ignored.
+- **Hot Deployment**: For rapid development cycles, changes to custom code can be deployed to a running Karaf instance without a full server restart.
 
-**Interceptors** allow cross-cutting concerns (logging, auditing, validation) to be applied before or after DAO operations and custom operations. They are registered via the interceptor registry and follow an ordered chain-of-responsibility pattern.
+## Architecture
 
-**Data Access** is handled through the generated SDK and DAO layer. The DAO provides type-safe query builders, filtering, ordering, and pagination. All data operations go through the DAO to ensure model constraints are enforced.
+### Code Generation vs Custom Implementation
 
-**Error Handling** uses a structured exception hierarchy. Validation errors, business rule violations, and data access failures each have dedicated exception types that map to appropriate HTTP status codes in the REST layer.
+**Generated (Do Not Edit Directly):**
+- SDK API interfaces (`application/sdk/`)
+- Internal SDK wrappers (`application/internal/`)
+- REST API endpoints (`application/rest/`)
+- Entity runtime models (from ASM)
 
-**Type System** bridges between ESM model types (String, Integer, Boolean, Date, Timestamp, Binary, Enumeration, etc.) and their Java counterparts. Understanding these mappings is essential when writing custom operations that manipulate model data.
+**Custom Implementation (Edit Here):**
+- Business logic operations (`application/app/`)
+- Request/response interceptors (`application/interceptors/`)
+- Custom validators and processors
 
-**Authentication and Authorization** is handled through JUDO's principal and access control mechanisms. The framework provides built-in support for actor types, permissions, and row-level security that can be extended with custom logic.
+### Code Generation and Checksum Protection
 
-**Internationalization** support is built into the framework with message bundles, locale-aware formatting, and translatable model elements.
+**How Generation Works:**
+1. All generated files are tracked by **checksum** in `.generated-files` (located in generator output directories)
+2. Files NOT in `.generator-ignore` will be regenerated on `./judo.sh build` or `./judo.sh generate`
+3. **Checksum validation**: Before overwriting, the generator checks if a file was manually edited
+   - If file was edited (checksum mismatch) → ❌ **Build FAILS** with error
+   - If file unchanged → ✅ File is regenerated normally
 
-## Available Reference Files
+**When You Must Edit Generated Files:**
 
-- `custom-operations.md` -- How to implement custom operations using the .default file pattern, service operations, and exported operations
-- `interceptors.md` -- How to write and register interceptors for cross-cutting concerns
-- `data-access-guide.md` -- DAO patterns, query building, SDK interface usage, and data manipulation
-- `error-handling-guide.md` -- Error handling patterns, exception hierarchy, and validation error reporting
-- `type-system-guide.md` -- Type mappings between ESM model types and Java types
-- `patterns-and-best-practices.md` -- General backend patterns, coding conventions, and architectural guidance
-- `authentication-guide.md` -- Authentication, authorization, actor types, and access control patterns
-- `internationalization-guide.md` -- i18n support, message bundles, and locale-aware formatting
+Sometimes there's no hook available for customization, and you must edit generated code directly. This is **NOT the preferred way**, but when necessary:
+
+1. **Edit the generated file** with your changes
+2. **Add to `.generator-ignore`** to protect it from regeneration
+   ```bash
+   echo "application/sdk/src/main/java/[PACKAGE]/[GeneratedFile].java" >> .generator-ignore
+   ```
+3. Place the entry in `.generator-ignore` near related overrides (it's used like `.gitignore`)
+
+**Handling Checksum Errors:**
+
+If you get checksum errors due to code formatting changes (e.g., after `git checkout` or IDE auto-format in dev mode):
+
+```bash
+# Ignore checksum errors and force regeneration
+./judo.sh generate -i
+# or
+./judo.sh build -i
+```
+
+**Checksum File Locations:**
+- `.generated-files` - In each generator output directory
+- Format: Tracks file paths and their checksums
+
+## Prerequisites
+
+### Required Tool Versions
+
+This project uses SDKMAN for version management. Required versions are specified in `.sdkmanrc`:
+
+```bash
+java=21.0.7-zulu
+maven=3.9.10
+mvnd=1.0.2
+```
+
+**Setup**:
+```bash
+# 1. Install SDKMAN (if not already installed)
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# 2. Enable auto-env (recommended - automatic version switching)
+echo "sdkman_auto_env=true" >> ~/.sdkman/etc/config
+
+# 3. Install versions from .sdkmanrc
+cd [project-name]
+sdk env install
+
+# 4. Verify
+java -version   # Should show 21.0.7-zulu
+mvn -version    # Should show 3.9.10
+```
+
+**How It Works**:
+- `.sdkmanrc` is generated by `./judo.sh generate-root` command
+- When `sdkman_auto_env=true`, SDKMAN automatically switches to project versions when you enter the directory
+- `./judo.sh` script automatically installs required versions if missing
+
+**Maven Daemon (mvnd)**: Optional but recommended for faster builds
+```bash
+# Use mvnd instead of mvn for faster incremental builds
+mvnd clean install
+```
+
+## Project Structure
+
+```
+application/
+├── sdk/                    # Generated API interfaces
+│   └── src/main/java/[PACKAGE]/
+│       └── [Entity]Dao.java, [Entity]Service.java
+├── internal/               # Generated SDK wrappers (binds custom to runtime)
+├── app/                    # ✏️ CUSTOM OPERATIONS HERE
+│   └── src/main/java/[PACKAGE]/
+│       └── Custom[Entity]ServiceImpl.java
+├── interceptors/           # ✏️ CUSTOM INTERCEPTORS HERE
+│   └── src/main/java/[PACKAGE]/
+│       ├── LogAuthenticationInterceptor.java
+│       └── LogOperationCallInterceptor.java
+└── rest/                   # Generated JAX-RS endpoints
+    └── resources/
+```
+
+**Note**: Package structure is generated from the model and typically follows patterns like `hu.blackbelt.model.northwind` or `party.mkkp.northwind`.
+
+## See Also
+
+- **[Architectural Patterns](./architectural-patterns.md)** - High-level architectural patterns for building robust and scalable applications.
+- **[Data Access Guide](data-access-guide.md)** - A guide to querying, filtering, and using masks for performance.
+- **[Type System Guide](type-system-guide.md)** - Explains the critical Service vs. Entity layer type system.
+- **[Custom Operations](custom-operations.md)** - Implementing custom business logic.
+- **[Interceptors](interceptors.md)** - For intercepting business logic operations.
+- **[Authentication Guide](authentication-guide.md)** - For handling user authentication events.
+- **[Internationalization Guide](internationalization-guide.md)** - A guide to localizing messages for a global audience.
+- **[Error Handling Guide](error-handling-guide.md)** - A guide to creating robust and user-friendly error responses.
+- **[Testing Guide](testing-guide.md)** - A guide to writing unit and integration tests.
+- **[Debugging and Monitoring Guide](debugging-and-monitoring-guide.md)** - A guide to debugging, monitoring, and performance profiling.
+- **Integration Testing (see `judo-integration-testing-docs` skill)** - Testing custom operations with judo-runtime-core-testkit.
+- **[Patterns and Best Practices](patterns-and-best-practices.md)** - A comprehensive guide to backend patterns and best practices.

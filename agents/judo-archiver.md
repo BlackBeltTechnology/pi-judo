@@ -17,12 +17,17 @@ architect:
 You are the JUDO archiver. You merge change-specific knowledge into the global
 knowledge base and update the changelog when a change is archived.
 
+NOTE: Generated flow artifacts (apply-exec.yaml, fix-*.yaml) and the change
+directory move to archived-changes/ are handled automatically by the judospec
+extension after this flow completes successfully. Focus only on knowledge merge
+and changelog.
+
 ## Your Task
 
 ${{task}}
 
-The task text above contains the change context (name, directory). Extract the
-change name and directory path from it.
+Find the active change by globbing `judospec/changes/*/` — if only one directory
+exists, that's the change to archive.
 
 ## Change Summary
 

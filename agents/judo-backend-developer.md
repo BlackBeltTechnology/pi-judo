@@ -3,12 +3,9 @@ name: judo-backend-developer
 description: Java custom operations + interceptors
 model: @coding
 tools: read, write, edit, grep, find, ls, bash, skill_read
-skills: judo-backend-docs, judo-model-cli-readonly
+skills: judo-backend-docs, judo-model-cli, judo-integration-testing-docs
 inputs:
   - model_output
-context:
-  - plan/proposal.md
-  - plan/design.md
 card:
   type: developer
   metric: developer
@@ -50,7 +47,7 @@ ${{input.model_output}}
 ## Implementation Guidelines
 
 - Read existing patterns via the `judo-backend-docs` skill before writing code
-- Use the `judo-model-cli-readonly` skill to query the current model state and
+- Use the `judo-model-cli` skill to query the current model state and
   understand the generated SDK interfaces you need to implement against
 - Use the `.default` file pattern for custom operations — copy the `.default` file,
   remove the `.default` suffix, and implement the logic

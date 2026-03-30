@@ -3,13 +3,10 @@ name: judo-frontend-developer
 description: React hooks, customizations, and theme modifications
 model: @coding
 tools: read, write, edit, grep, find, ls, bash, skill_read
-skills: judo-frontend-docs
+skills: judo-frontend-docs, judo-model-cli
 inputs:
   - model_output
   - backend_output
-context:
-  - plan/proposal.md
-  - plan/design.md
 card:
   type: developer
   metric: developer

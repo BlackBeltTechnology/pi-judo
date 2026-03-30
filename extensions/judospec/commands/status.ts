@@ -1,19 +1,32 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import type { Registry } from "../state/registry.js";
+import { discoverChanges, type ChangeInfo } from "../state/discovery.js";
 
-export function registerStatusCommand(pi: ExtensionAPI, registry: Registry): void {
+export function registerStatusCommand(pi: ExtensionAPI, cwd: string): void {
   pi.registerCommand("judo:status", {
-    description: "Show all JUDO changes status",
+    description: "Show JUDO project and change status",
     handler: async (_args, ctx) => {
-      const changes = registry.listChanges();
-      const lock = registry.getApplyLock();
+      const changes = discoverChanges(cwd);
 
-      const lines: string[] = ["JUDO Changes:"];
-      for (const [id, entry] of Object.entries(changes)) {
-        lines.push(`  ${id}: ${entry.phase}/${entry.status} - ${entry.description} (${entry.files.length} files, ${entry.mutations} mutations)`);
+      const lines: string[] = [];
+
+      if (changes.length === 0) {
+        lines.push("No active changes in judospec/changes/.");
+        lines.push("Run /judo:research to start a new change.");
+      } else {
+        lines.push(`${changes.length} change(s):\n`);
+        for (const c of changes) {
+          const artifacts = [
+            c.hasResearch ? "✓ research" : "○ research",
+            c.hasDesign ? "✓ design" : "○ design",
+            c.hasProposal ? "✓ proposal" : "○ proposal",
+            c.hasTasks ? "✓ tasks" : "○ tasks",
+            c.hasApplyExec ? "✓ apply-exec" : "○ apply-exec",
+            c.hasVerification ? "✓ verified" : "○ verified",
+          ].join("  ");
+          lines.push(`  ${c.name}  [${c.phase}]`);
+          lines.push(`    ${artifacts}`);
+        }
       }
-      if (lock) lines.push(`\nApply lock: ${lock.change_id} (session: ${lock.session_id})`);
-      if (Object.keys(changes).length === 0) lines.push("  No changes. Use /flow to create one.");
 
       ctx.ui.notify(lines.join("\n"), "info");
     },

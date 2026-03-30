@@ -1,0 +1,140 @@
+name: discuss
+description: Interactive design Q&A — decompose research into prioritized decisions
+task_required: true
+task_prompt: "Which change needs design discussion?"
+max_concurrent: 1
+
+steps:
+  # --- Decompose research into prioritized questions ---
+
+  - id: decompose
+    agent: judo-proposal-writer
+    task: >
+      MODE: Pre-proposal design discussion.
+      Analyze research at judospec/research/ and decompose into design
+      decision categories. For each question, classify as high-priority
+      (cascades through JUDO generation pipeline — model shape, relations,
+      TOs, operations, shared UI patterns, security boundaries) or
+      low-priority (localized, easily changed — labels, tooltips, one hook's
+      internal logic, cosmetic spacing).
+
+      Return your findings in the summary with questions grouped by category
+      and tagged with priority. Include concrete options for each question.
+
+      User's request: ${{task}}
+
+  # --- High-priority: user decides or delegates ---
+
+  - id: high-priority
+    type: fork
+    question: >
+      Review the high-priority design decisions below. These cascade through
+      the JUDO generation pipeline and are hard to reverse.
+
+      ${{result.decompose.summary}}
+
+      Select the decisions you want to answer yourself.
+      Unselected decisions will be delegated to Claude.
+    options:
+      - Answer all high-priority questions myself
+      - Delegate all to Claude
+      - Select specific questions to answer
+    agent: flow-decision
+    task: >
+      The user is reviewing high-priority design decisions.
+      Questions: ${{result.decompose.summary}}
+      If user seems to have a strong opinion, recommend "Answer all".
+      If task is exploratory, recommend "Delegate all to Claude".
+    branches:
+      Answer all high-priority questions myself: answer-high
+      Delegate all to Claude: low-priority
+      Select specific questions to answer: answer-high
+
+  - id: answer-high
+    agent: judo-proposal-writer
+    task: >
+      MODE: Pre-proposal design discussion.
+      Present the high-priority questions from the decomposition for the user
+      to answer. The user's selections and notes are:
+      ${{fork.high-priority.notes}}
+
+      Decomposition context: ${{result.decompose.summary}}
+
+      Record the user's answers and any delegated decisions.
+      Write accumulated decisions to design.md.
+    on_complete: low-priority
+
+  # --- Low-priority: batch delegation ---
+
+  - id: low-priority
+    type: fork
+    question: >
+      There are low-priority questions remaining (UI details, naming,
+      cosmetic choices). Which would you like to answer yourself?
+      Unselected questions will be answered by Claude using research context.
+    options:
+      - Answer specific low-priority questions
+      - Delegate all low-priority to Claude
+    branches:
+      Answer specific low-priority questions: answer-low
+      Delegate all low-priority to Claude: finalize
+
+  - id: answer-low
+    agent: judo-proposal-writer
+    task: >
+      MODE: Pre-proposal design discussion.
+      Present the low-priority questions the user wants to answer.
+      User's selections: ${{fork.low-priority.notes}}
+      Prior decisions: ${{result.answer-high.summary}}
+      Decomposition: ${{result.decompose.summary}}
+
+      Record answers and write to design.md.
+    on_complete: finalize
+
+  # --- Finalize: single dispatch with all decisions ---
+
+  - id: finalize
+    agent: judo-proposal-writer
+    task: >
+      MODE: Pre-proposal design discussion.
+      Write the final design.md with ALL design decisions organized under
+      category headings.
+
+      For user-answered decisions: record the answer with Source: User.
+      For delegated decisions: choose the best option from research context,
+      write rationale, mark Source: Claude's discretion.
+
+      Prior high-priority decisions: ${{result.answer-high.summary}}
+      Prior low-priority decisions: ${{result.answer-low.summary}}
+      Full decomposition: ${{result.decompose.summary}}
+      User's request: ${{task}}
+
+  # --- Override gate ---
+
+  - id: override-gate
+    type: fork
+    question: >
+      Review Claude's auto-decided questions in design.md.
+      Select any decisions you want to override, or accept all.
+    options:
+      - Accept all decisions
+      - Override specific decisions
+    branches:
+      Accept all decisions: discuss-done
+      Override specific decisions: override-finalize
+
+  - id: override-finalize
+    agent: judo-proposal-writer
+    task: >
+      MODE: Pre-proposal design discussion.
+      The user wants to override specific decisions in design.md.
+      Overrides: ${{fork.override-gate.notes}}
+      Re-write design.md with the user's overrides applied.
+      Prior context: ${{result.finalize.summary}}
+
+  - id: discuss-done
+    agent: judo-summarizer
+    task: >
+      Summarize the completed design discussion.
+      Read design.md and present the key decisions made,
+      how many were user-decided vs Claude-decided.

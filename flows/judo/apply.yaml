@@ -1,0 +1,98 @@
+name: apply
+description: Execute a change — generate DAG from tasks, run agents, verify, fix, commit
+task_required: true
+task_prompt: "Which change should be applied?"
+max_concurrent: 4
+
+steps:
+  # ═══════════════════════════════════════════════════════
+  #  Phase 1: Generate execution DAG from tasks.md
+  # ═══════════════════════════════════════════════════════
+
+  - id: generate-dag
+    agent: judo-flow-writer
+    task: >
+      Read the change's tasks.md and generate an execution flow.
+      Write the flow to the change directory as apply-exec.yaml.
+      Rules:
+      - One agent step per task in tasks.md
+      - Wire blockedBy from task dependencies
+      - Model-designer tasks MUST be sequential (chain blockedBy)
+      - Backend/frontend tasks depend on the last model task
+      - Test tasks depend on their implementation tasks
+      - Do NOT include verifier, backpropagator, summarizer, or git-manager
+      - Set max_concurrent: 3
+      Change context: ${{task}}
+
+  # ═══════════════════════════════════════════════════════
+  #  Phase 2: Execute the generated flow
+  # ═══════════════════════════════════════════════════════
+
+  - id: run-tasks
+    type: flow-ref
+    path: "judospec/changes/*/apply-exec.yaml"
+    on_complete: verify
+    on_error: verify
+
+  # ═══════════════════════════════════════════════════════
+  #  Phase 3: Verify acceptance criteria
+  # ═══════════════════════════════════════════════════════
+
+  - id: verify
+    agent: judo-verifier
+    task: >
+      Build the project and verify acceptance criteria from the proposal.
+      Write verification report.
+      Implementation results: ${{result.run-tasks.summary}}
+
+  # ═══════════════════════════════════════════════════════
+  #  Phase 4: Verify/fix loop
+  # ═══════════════════════════════════════════════════════
+
+  - id: fix-decision
+    type: agent-loop-decision
+    agent: flow-decision
+    task: >
+      Evaluate verification result (iteration ${{loop.fix-decision.iteration}}/${{loop.fix-decision.max}}).
+      Verifier output: ${{result.verify.summary}}
+      Verifier artifacts: ${{result.verify.artifacts}}
+      If ALL acceptance criteria pass and build succeeded, choose "exit".
+      If there are gaps or failures, choose "loop" for a fix cycle.
+    loop_target: backpropagate
+    exit_target: summarize
+    max_iterations: 3
+
+  - id: backpropagate
+    agent: judo-backpropagator
+    task: >
+      Analyze verification gaps and create a fix flow.
+      Verification: ${{result.verify.summary}}
+      Gaps: ${{result.verify.artifacts}}
+      Iteration: ${{loop.fix-decision.iteration}}
+      Write the fix flow to the change directory.
+    inputs:
+      verification_gaps: "${{result.verify.artifacts}}"
+
+  - id: run-fixes
+    type: flow-ref
+    path: "judospec/changes/*/fix-*.yaml"
+    on_complete: verify
+    on_error: verify
+
+  # ═══════════════════════════════════════════════════════
+  #  Phase 5: Summarize and commit
+  # ═══════════════════════════════════════════════════════
+
+  - id: summarize
+    agent: judo-summarizer
+    task: >
+      Generate a change summary from implementation and verification results.
+      Verification: ${{result.verify.summary}}
+
+  - id: commit
+    agent: judo-git-manager
+    blockedBy: [summarize]
+    task: >
+      Commit all changes for this apply.
+      Summary: ${{result.summarize.summary}}
+      Verification: ${{result.verify.summary}}

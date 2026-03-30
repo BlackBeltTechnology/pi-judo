@@ -1,8 +1,9 @@
 ---
 name: judo-proposal-writer
-description: Creates and revises proposals with WHEN/THEN specs — supports create, revise, and gap-resolution modes
+description: Creates and revises proposals with WHEN/THEN specs — supports detect, create, revise, discuss, and gap-resolution modes
 model: @planning
-tools: read, write, grep, glob
+tools: read, write, grep, glob, skill_read
+skills: judo-backend-docs, judo-model-docs, judo-frontend-docs
 inputs:
   - research
   - design
@@ -30,6 +31,18 @@ in your task. You do NOT have bash access.
 ${{task}}
 
 ## Modes
+
+### MODE: Detect
+Check whether proposal.md exists in the change directory. This is a lightweight
+filesystem check used by the plan flow to route between create and revise paths.
+
+1. Find the active change — glob `judospec/changes/*/` to discover change directories
+2. Check if `proposal.md` exists in that directory using glob or read
+3. If it exists: call `finish` with a non-empty artifacts field (include the path)
+4. If it does not exist: call `finish` with an empty artifacts field
+5. Include the change directory path in your summary regardless
+
+This mode MUST NOT create or modify any files.
 
 ### MODE: Create
 Synthesize research findings into a structured proposal with design decisions

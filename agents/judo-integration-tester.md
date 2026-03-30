@@ -3,12 +3,10 @@ name: judo-integration-tester
 description: Backend integration tests using judo-runtime-core-testkit
 model: @coding
 tools: read, write, edit, grep, find, ls, bash, skill_read
-skills: judo-integration-docs
+skills: judo-integration-testing-docs, judo-model-cli
 inputs:
   - backend_output
   - model_output
-context:
-  - plan/proposal.md
 card:
   type: tester
   metric: tester

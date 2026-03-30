@@ -3,11 +3,9 @@ name: judo-frontend-researcher
 description: Investigates frontend React code, hooks, and UI generation patterns
 model: @research
 tools: read, grep, find, ls, skill_read
-skills: judo-frontend-docs
+skills: judo-frontend-docs, judo-model-cli
 inputs:
   - model_context
-context:
-  - research/summary.md
 card:
   type: researcher
   metric: researcher

@@ -3,11 +3,9 @@ name: judo-e2e-tester
 description: Playwright E2E tests for frontend scenarios
 model: @coding
 tools: read, write, edit, grep, find, ls, bash, skill_read
-skills: judo-e2e-docs
+skills: judo-e2e-testing-docs, judo-deployment-docs
 inputs:
   - verifier_build
-context:
-  - plan/proposal.md
 card:
   type: tester
   metric: tester

@@ -5,8 +5,6 @@ model: @coding
 tools: read, write, edit, grep, find, ls, bash
 inputs:
   - implementation_context
-context:
-  - plan/proposal.md
 card:
   type: developer
   metric: developer

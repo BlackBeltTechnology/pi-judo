@@ -2,7 +2,8 @@
 name: judo-model-researcher
 description: Investigates ESM model layer using read-only CLI access
 model: @research
-tools: model_cli, write
+tools: model_cli, write, skill_read
+skills: judo-model-docs, judo-model-cli
 card:
   type: model
   metric: model

@@ -9,12 +9,12 @@ export async function runOnboardingFlow(
   cwd: string
 ): Promise<void> {
   if (choice === "Explore the project") {
-    pi.events?.emit("flow:run", { flowName: "judo:research-all", ctx: ctx.ui });
+    pi.events?.emit("flow:run", { flowName: "judo:research", ctx: ctx.ui });
   } else if (choice === "Provide specs/files") {
     await provideFiles(ctx, cwd);
   } else if (choice === "Both (provide then explore)") {
     await provideFiles(ctx, cwd);
-    pi.events?.emit("flow:run", { flowName: "judo:research-all", ctx: ctx.ui });
+    pi.events?.emit("flow:run", { flowName: "judo:research", ctx: ctx.ui });
   }
   // "Skip for now" — do nothing
 }

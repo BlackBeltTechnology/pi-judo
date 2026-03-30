@@ -3,13 +3,10 @@ name: judo-frontend-developer
 description: React hooks, customizations, and theme modifications
 model: @coding
 tools: read, write, edit, grep, find, ls, bash, skill_read
-skills: judo-frontend-docs
+skills: judo-frontend-docs, judo-model-cli
 inputs:
   - model_output
   - backend_output
-context:
-  - plan/proposal.md
-  - plan/design.md
 card:
   type: developer
   metric: developer
@@ -35,16 +32,16 @@ theme modifications, and component overrides within JUDO frontend paths.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Model and Backend Changes Context
 
 If model or backend changes were performed in prior steps, their outputs are
 available here:
 
-{input.model_output}
+${{input.model_output}}
 
-{input.backend_output}
+${{input.backend_output}}
 
 ## Implementation Guidelines
 

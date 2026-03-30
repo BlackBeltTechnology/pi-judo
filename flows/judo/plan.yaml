@@ -1,0 +1,138 @@
+name: plan
+description: Create or revise a proposal with design decisions
+task_required: true
+task_prompt: "Describe what you want to build or change:"
+max_concurrent: 2
+
+steps:
+  # --- Detect existing state ---
+
+  - id: detect-state
+    agent: judo-proposal-writer
+    task: >
+      MODE: Detect.
+      Check if the change directory contains a proposal.md.
+      If proposal.md exists, report it in artifacts with the path.
+      If no proposal.md exists, report empty artifacts.
+      Include the change directory path in your summary.
+      User's request: ${{task}}
+
+  - id: route-mode
+    type: conditional
+    check: detect-state.artifacts
+    present: existing-proposal
+    absent: new-proposal
+
+  # ═══════════════════════════════════════════════════════
+  #  PATH A: New proposal
+  # ═══════════════════════════════════════════════════════
+
+  - id: new-proposal
+    type: fork
+    question: >
+      No existing proposal found. How should we proceed?
+    options:
+      - Discuss design first, then create proposal
+      - Create proposal directly from research
+    agent: flow-decision
+    task: >
+      The user wants to: ${{task}}
+      Research exists at judospec/research/.
+      If the task is complex (multiple entities, cross-cutting concerns),
+      recommend discussing design first. Otherwise, go straight to proposal.
+    branches:
+      Discuss design first, then create proposal: design-discuss
+      Create proposal directly from research: create-proposal
+
+  - id: design-discuss
+    agent: judo-proposal-writer
+    task: >
+      MODE: Pre-proposal design discussion.
+      Analyze research at judospec/research/ and decompose into
+      design decision categories. Write design.md with decisions
+      and open questions.
+      User's request: ${{task}}
+    on_complete: create-proposal
+
+  - id: create-proposal
+    agent: judo-proposal-writer
+    task: >
+      MODE: Create.
+      Create proposal.md and tasks.md from research findings.
+      If design.md exists, incorporate those decisions.
+      User's request: ${{task}}
+      Design context: ${{result.design-discuss.summary}}
+    inputs:
+      design: "${{result.design-discuss.summary}}"
+      research: "${{result.detect-state.summary}}"
+    on_complete: check-gaps
+
+  # --- Gap resolution loop ---
+
+  - id: check-gaps
+    type: fork
+    question: >
+      Review the proposal for unresolved GAP markers.
+      Would you like to resolve them?
+    options:
+      - Resolve gaps now
+      - Accept proposal as-is
+    branches:
+      Resolve gaps now: fill-gaps
+      Accept proposal as-is: plan-done
+
+  - id: fill-gaps
+    agent: judo-proposal-writer
+    task: >
+      MODE: Gap resolution.
+      Read proposal.md, find all GAP markers, resolve them.
+      User notes: ${{fork.check-gaps.notes}}
+      Rewrite proposal.md and regenerate tasks.md.
+
+  - id: gap-loop
+    type: agent-loop-decision
+    agent: flow-decision
+    task: >
+      Check if proposal.md still has unresolved GAP markers.
+      Gap filler result: ${{result.fill-gaps.summary}}
+      If gaps remain, choose "loop". If clean, choose "exit".
+    loop_target: check-gaps
+    exit_target: plan-done
+    max_iterations: 3
+
+  # ═══════════════════════════════════════════════════════
+  #  PATH B: Existing proposal
+  # ═══════════════════════════════════════════════════════
+
+  - id: existing-proposal
+    type: fork
+    question: >
+      A proposal already exists. What would you like to do?
+    options:
+      - Revise the proposal
+      - Discuss and resolve open gaps
+      - Start fresh (discard existing)
+    branches:
+      Revise the proposal: revise-proposal
+      Discuss and resolve open gaps: check-gaps
+      Start fresh (discard existing): new-proposal
+
+  - id: revise-proposal
+    agent: judo-proposal-writer
+    task: >
+      MODE: Revision.
+      Read existing proposal.md. The user wants: ${{fork.existing-proposal.notes}}
+      Insert GAP markers at locations that need decisions.
+      Do NOT resolve gaps — just mark them.
+    on_complete: check-gaps
+
+  # ═══════════════════════════════════════════════════════
+  #  Completion
+  # ═══════════════════════════════════════════════════════
+
+  - id: plan-done
+    agent: judo-summarizer
+    task: >
+      Summarize the completed plan.
+      Read proposal.md and tasks.md, produce a brief overview of what
+      will be implemented and the task breakdown.

@@ -1,0 +1,62 @@
+name: research
+description: Research JUDO codebase — select domains, parallel investigate, summarize
+task_required: true
+task_prompt: "What aspect of the codebase should be researched?"
+max_concurrent: 3
+
+steps:
+  - id: domains
+    type: fork
+    question: Which domains should be researched?
+    options:
+      - Model
+      - Backend
+      - Frontend
+      - All domains
+    multiSelect: true
+    agent: flow-decision
+    task: >
+      Based on the research topic, which domains are relevant?
+      Topic: ${{task}}
+      Pick ALL that would contain relevant code for this topic.
+      If unsure, pick "All domains".
+    branches:
+      Model: model-research
+      Backend: backend-research
+      Frontend: frontend-research
+      All domains: model-research
+
+  - id: model-research
+    agent: judo-model-researcher
+    task: >
+      Research topic: ${{task}}
+      Write findings to judospec/research/model.md.
+
+  - id: backend-research
+    agent: judo-backend-researcher
+    blockedBy: [model-research]
+    task: >
+      Research topic: ${{task}}
+      Write findings to judospec/research/backend.md.
+    inputs:
+      model_context: "${{result.model-research.summary}}"
+
+  - id: frontend-research
+    agent: judo-frontend-researcher
+    blockedBy: [model-research]
+    task: >
+      Research topic: ${{task}}
+      Write findings to judospec/research/frontend.md.
+    inputs:
+      model_context: "${{result.model-research.summary}}"
+
+  - id: summarize
+    agent: judo-summarizer
+    blockedBy: [model-research, backend-research, frontend-research]
+    task: >
+      Synthesize domain research into a unified summary.
+      Write to judospec/research/summary.md.
+    inputs:
+      model: "${{result.model-research.summary}}"
+      backend: "${{result.backend-research.summary}}"
+      frontend: "${{result.frontend-research.summary}}"

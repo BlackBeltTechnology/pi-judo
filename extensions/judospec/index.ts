@@ -1,18 +1,14 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { existsSync, globSync } from "node:fs";
+import { existsSync, globSync, readdirSync, statSync, rmSync, renameSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createModelProtectionGuard } from "./guards.js";
 import { createModelCliTool, getMutationCount } from "./tools/model-cli.js";
-import { Registry } from "./state/registry.js";
 import { ServerManager } from "./server/lifecycle.js";
 import { setupFooter } from "./footer.js";
-
 import { SessionFileTracker } from "./file-tracker.js";
 import { registerStatusCommand } from "./commands/status.js";
-import { runOnboardingFlow } from "./onboarding.js";
-
 
 // Card metric renderers
 import { ModelCard } from "./cards/model-card.js";
@@ -41,7 +37,7 @@ export default function activate(pi: ExtensionAPI) {
   } catch {}
 
   // ---------------------------------------------------------------------------
-  // Register judo-specific card metric renderers via flow-dashboard events
+  // Dashboard cards
   // ---------------------------------------------------------------------------
 
   pi.events?.emit("flow:register-card", { name: "model", factory: () => new ModelCard() });
@@ -53,25 +49,22 @@ export default function activate(pi: ExtensionAPI) {
   pi.events?.emit("flow:register-card", { name: "verifier", factory: () => new VerifierCard() });
 
   // ---------------------------------------------------------------------------
-  // Register SDD workflow into flow-dashboard
+  // SDD workflow pipeline (for dashboard breadcrumb)
   // ---------------------------------------------------------------------------
 
   pi.events?.emit("flow:register-workflow", {
-    id: "research-all",
-    stages: [
-      { name: "research", flows: ["judo:research-all"] },
-    ],
-  });
-
-  pi.events?.emit("flow:register-workflow", {
-    id: "research",
+    id: "judo-sdd",
     stages: [
       { name: "research", flows: ["judo:research"] },
+      { name: "discuss", flows: ["judo:discuss"] },
+      { name: "plan", flows: ["judo:plan"] },
+      { name: "apply", flows: ["judo:apply"] },
+      { name: "archive", flows: ["judo:archive"] },
     ],
   });
 
   // ---------------------------------------------------------------------------
-  // Register project and research gates
+  // Gate: JUDO project required (model/*.model must exist)
   // ---------------------------------------------------------------------------
 
   pi.events?.emit("flow:register-gate", {
@@ -81,36 +74,31 @@ export default function activate(pi: ExtensionAPI) {
     message: "No JUDO model files found (model/*.model). JUDO flows require a JUDO project.",
   });
 
-  const researchDir = join(cwd, "judospec", "research");
-  const hasResearch = () => existsSync(researchDir);
-
-  pi.events?.emit("flow:register-gate", {
-    name: "judo-research",
-    check: hasResearch,
-    flows: ["judo:research"],
-    message: "No research directory found. Run /judo:research-all first to populate research.",
-  });
-
   // ---------------------------------------------------------------------------
-  // Registry + commands
+  // Status command (filesystem-based, no registry)
   // ---------------------------------------------------------------------------
 
-  const registry = new Registry(cwd);
   const serverManager = new ServerManager(cwd);
-
-  registerStatusCommand(pi, registry);
+  registerStatusCommand(pi, cwd);
 
   // ---------------------------------------------------------------------------
-  // Guard model files (only if JUDO project)
+  // Model file guards + model_cli tool (only if JUDO project)
   // ---------------------------------------------------------------------------
 
   if (judoEnabled) {
     const guard = createModelProtectionGuard();
     pi.on("tool_call", guard);
 
-    // Register model_cli tool
+    pi.events?.emit("flow:register-guard-extension", {
+      factory: (piApi: any) => {
+        piApi.on("tool_call", createModelProtectionGuard());
+      },
+    });
+
     const modelCliTool = createModelCliTool(cwd);
     pi.registerTool(modelCliTool);
+    // Make model_cli available to flow agent sessions (e.g., judo-model-researcher)
+    pi.events.emit("flow:register-tool", { tool: modelCliTool });
   }
 
   // ---------------------------------------------------------------------------
@@ -119,14 +107,12 @@ export default function activate(pi: ExtensionAPI) {
 
   const fileTracker = new SessionFileTracker();
 
-  // Snapshot files BEFORE edit/write tool execution
   pi.on("tool_call", async (event: any) => {
     if (event.toolName === "edit" || event.toolName === "write") {
       fileTracker.snapshotFile(event.toolCallId, event.input.path);
     }
   });
 
-  // Record file modifications AFTER edit/write tool execution
   pi.on("tool_result", async (event: any) => {
     if (event.isError) return;
     if (event.toolName === "edit" && event.details?.diff) {
@@ -138,24 +124,63 @@ export default function activate(pi: ExtensionAPI) {
     }
   });
 
-  // Track subagent file writes from flow completions
   pi.events?.on("flow:complete", (data: any) => {
     if (!data?.results) return;
     for (const stepResult of Object.values(data.results) as any[]) {
       if (!stepResult?.files) continue;
-      // files is a comma-joined string like "src/main.ts (created), src/config.ts (modified)"
       for (const entry of stepResult.files.split(", ").filter(Boolean)) {
         const match = entry.match(/^(.+?)\s+\((created|modified|read)\)$/);
         if (!match || match[2] === "read") continue;
         const filePath = match[1];
-        // Record as a write (no diff available from subagents)
         if (!filePath) continue;
         fileTracker.recordWrite(filePath, 0);
       }
     }
   });
 
-  // Restore files on tree rewind
+  // ---------------------------------------------------------------------------
+  // Post-archive cleanup: delete generated flows, move to archived-changes
+  // ---------------------------------------------------------------------------
+
+  pi.events?.on("flow:complete", (data: any) => {
+    if (data?.flowName !== "judo:archive") return;
+    if (data?.status === "error" || data?.status === "aborted") return;
+
+    const changesDir = join(cwd, "judospec", "changes");
+    if (!existsSync(changesDir)) return;
+
+    let changeDirs: string[];
+    try {
+      changeDirs = readdirSync(changesDir).filter((entry) => {
+        try { return statSync(join(changesDir, entry)).isDirectory(); }
+        catch { return false; }
+      });
+    } catch { return; }
+
+    const archivedDir = join(cwd, "judospec", "archived-changes");
+
+    for (const changeName of changeDirs) {
+      const changeDir = join(changesDir, changeName);
+
+      // Delete generated flow artifacts (ephemeral execution DAGs)
+      try {
+        const files = readdirSync(changeDir);
+        for (const file of files) {
+          if (file === "apply-exec.yaml" || (file.startsWith("fix-") && file.endsWith(".yaml"))) {
+            rmSync(join(changeDir, file), { force: true });
+          }
+        }
+      } catch { /* best-effort cleanup */ }
+
+      // Move change directory to archived-changes
+      try {
+        mkdirSync(archivedDir, { recursive: true });
+        renameSync(changeDir, join(archivedDir, changeName));
+      } catch { /* best-effort — may fail if cross-device */ }
+    }
+  });
+
+  // Tree rewind support
   pi.on("session_before_tree", async (event: any) => {
     const entryIds = new Set<string>(
       event.preparation.entriesToSummarize.map((e: any) => e.id),
@@ -165,10 +190,7 @@ export default function activate(pi: ExtensionAPI) {
     }
   });
 
-  // Reset tracker after tree navigation
-  pi.on("session_tree", async (event: any) => {
-    const oldLeafId = event.oldLeafId;
-    // Clear all tracking — post-rewind is a clean slate
+  pi.on("session_tree", async (_event: any) => {
     fileTracker.reset();
   });
 
@@ -179,20 +201,20 @@ export default function activate(pi: ExtensionAPI) {
   setupFooter(pi, serverManager, getMutationCount);
 
   // ---------------------------------------------------------------------------
-  // Session start — show warning or onboarding
+  // Session start
   // ---------------------------------------------------------------------------
 
   pi.on("session_start", async (_event, ctx) => {
     fileTracker.reset();
 
     if (ctx.hasUI) {
-      // Print help once at session start, not as a persistent widget
       const lines = [
-        "  /judo:status        All changes status",
+        "  /judo:status        Project & change status",
         "  /judo:research      Research selected domains",
-        "  /judo:plan          Create or revise a proposal with design decisions",
-        "  /judo:apply         Execute change — generate DAG, run agents, verify, fix",
-        "  /judo:archive       Archive completed change — merge knowledge, commit",
+        "  /judo:discuss       Interactive design Q&A",
+        "  /judo:plan          Create or revise a proposal",
+        "  /judo:apply         Execute change — DAG, verify, fix, commit",
+        "  /judo:archive       Archive completed change",
         "",
       ];
       pi.sendMessage({
@@ -204,31 +226,21 @@ export default function activate(pi: ExtensionAPI) {
 
     if (!judoEnabled) {
       ctx.ui.setWidget("judo-warning", (_tui: any, theme: any) => ({
-        render(width: number): string[] {
-          const msg = " ⚠ No Judo model files found (model/*.model). Judo flow commands and subagents are disabled. Run pi from a Judo project root.";
-          const line = theme.fg("error", msg);
-          return [line];
+        render(_width: number): string[] {
+          const msg = " ⚠ No Judo model files found (model/*.model). Judo flows are disabled.";
+          return [theme.fg("error", msg)];
         },
         invalidate() {},
       }), { placement: "aboveEditor" });
       return;
     }
 
-    // JUDO project with existing research — nothing to prompt
-    if (hasResearch()) return;
+    const researchDir = join(cwd, "judospec", "research");
+    if (existsSync(researchDir)) return;
 
-    // No research yet — onboarding flow
-    const choice = await ctx.ui.select(
-      "No project research found. How would you like to proceed?",
-      ["Explore the project", "Provide specs/files", "Both (provide then explore)", "Skip for now"]
-    );
-
-    if (choice && choice !== "Skip for now") {
-      await runOnboardingFlow(choice, pi, ctx, cwd);
-    }
+    ctx.ui.notify("No project research found. Run /judo:research to explore the project.", "info");
   });
 
-  // Clear warning widget on first agent interaction
   pi.on("before_agent_start", async (_event, ctx) => {
     if (!judoEnabled) {
       ctx.ui.setWidget("judo-warning", undefined);
@@ -237,20 +249,15 @@ export default function activate(pi: ExtensionAPI) {
   });
 
   // ---------------------------------------------------------------------------
-  // Session shutdown: release apply lock and stop server
+  // Session shutdown: stop server
   // ---------------------------------------------------------------------------
 
   pi.on("session_shutdown", async () => {
-    const sessionId = process.pid.toString();
-    registry.releaseApplyLock(sessionId);
     await serverManager.stop();
   });
 
   // ---------------------------------------------------------------------------
-  // Server lifecycle for model agents
-  //
-  // The flow-engine dispatches agents via callbacks, not events.  We listen for
-  // model_cli tool calls to auto-start the server, and stop it when idle.
+  // Server lifecycle: auto-start on model_cli usage
   // ---------------------------------------------------------------------------
 
   pi.on("tool_call", async (event: any) => {

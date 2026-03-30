@@ -3,12 +3,10 @@ name: judo-integration-tester
 description: Backend integration tests using judo-runtime-core-testkit
 model: @coding
 tools: read, write, edit, grep, find, ls, bash, skill_read
-skills: judo-integration-docs
+skills: judo-integration-testing-docs, judo-model-cli
 inputs:
   - backend_output
   - model_output
-context:
-  - plan/proposal.md
 card:
   type: tester
   metric: tester
@@ -29,15 +27,15 @@ using the `judo-runtime-core-testkit` framework.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Implementation and Model Context
 
 If backend implementation or model changes were performed in prior steps:
 
-{input.backend_output}
+${{input.backend_output}}
 
-{input.model_output}
+${{input.model_output}}
 
 ## Testing Guidelines
 

@@ -39,25 +39,37 @@ function globReferencesModel(pattern: string): boolean {
 
 // ---- Tool routing ---------------------------------------------------------
 
-/** Maps file-based tool names to the parameter that carries the path. */
-const READ_TOOLS: Record<string, string> = {
-  Read: "file_path",
-  read: "file_path",
-  Grep: "path",
-  grep: "path",
+/** Maps file-based tool names to the parameter(s) that carry the path. */
+/** The SDK schema uses "path" but some models may still send "file_path" (legacy). Check both. */
+const READ_TOOLS: Record<string, string[]> = {
+  Read: ["path", "file_path"],
+  read: ["path", "file_path"],
+  Grep: ["path"],
+  grep: ["path"],
 };
 
-const GLOB_TOOLS: Record<string, string> = {
-  Glob: "pattern",
-  glob: "pattern",
+const GLOB_TOOLS: Record<string, string[]> = {
+  Glob: ["pattern"],
+  glob: ["pattern"],
 };
 
-const WRITE_TOOLS: Record<string, string> = {
-  Write: "file_path",
-  write: "file_path",
-  Edit: "file_path",
-  edit: "file_path",
+const WRITE_TOOLS: Record<string, string[]> = {
+  Write: ["path", "file_path"],
+  write: ["path", "file_path"],
+  Edit: ["path", "file_path"],
+  edit: ["path", "file_path"],
 };
+
+/**
+ * Get the first non-undefined string value from params for a list of candidate keys.
+ */
+function getParamValue(params: Record<string, any>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = params[key];
+    if (typeof value === "string") return value;
+  }
+  return undefined;
+}
 
 /**
  * Checks whether a file-based tool targets a .model file and returns the
@@ -68,30 +80,30 @@ function checkFileTool(
   params: Record<string, any>,
 ): string | null {
   // Read / Grep
-  const readParam = READ_TOOLS[toolName];
-  if (readParam) {
-    const value = params[readParam];
-    if (typeof value === "string" && pathTargetsModelFile(value)) {
+  const readParams = READ_TOOLS[toolName];
+  if (readParams) {
+    const value = getParamValue(params, readParams);
+    if (value && pathTargetsModelFile(value)) {
       return READ_BLOCKED_MESSAGE;
     }
     return null;
   }
 
   // Glob
-  const globParam = GLOB_TOOLS[toolName];
-  if (globParam) {
-    const value = params[globParam];
-    if (typeof value === "string" && globReferencesModel(value)) {
+  const globParams = GLOB_TOOLS[toolName];
+  if (globParams) {
+    const value = getParamValue(params, globParams);
+    if (value && globReferencesModel(value)) {
       return READ_BLOCKED_MESSAGE;
     }
     return null;
   }
 
   // Write / Edit
-  const writeParam = WRITE_TOOLS[toolName];
-  if (writeParam) {
-    const value = params[writeParam];
-    if (typeof value === "string" && pathTargetsModelFile(value)) {
+  const writeParams = WRITE_TOOLS[toolName];
+  if (writeParams) {
+    const value = getParamValue(params, writeParams);
+    if (value && pathTargetsModelFile(value)) {
       return WRITE_BLOCKED_MESSAGE;
     }
     return null;

@@ -5,8 +5,6 @@ model: @coding
 tools: read, write, edit, grep, find, ls, bash
 inputs:
   - implementation_context
-context:
-  - plan/proposal.md
 card:
   type: developer
   metric: developer
@@ -38,11 +36,11 @@ and languages outside the JUDO framework.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Implementation Context
 
-{input.implementation_context}
+${{input.implementation_context}}
 
 ## Implementation Guidelines
 

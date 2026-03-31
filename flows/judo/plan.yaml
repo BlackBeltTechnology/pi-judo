@@ -86,7 +86,6 @@ steps:
     task: >
       MODE: Gap resolution.
       Read proposal.md, find all GAP markers, resolve them.
-      User notes: ${{fork.check-gaps.notes}}
       Rewrite proposal.md and regenerate tasks.md.
 
   - id: gap-loop
@@ -121,7 +120,7 @@ steps:
     agent: judo-proposal-writer
     task: >
       MODE: Revision.
-      Read existing proposal.md. The user wants: ${{fork.existing-proposal.notes}}
+      Read existing proposal.md and revise it based on the user's request.
       Insert GAP markers at locations that need decisions.
       Do NOT resolve gaps — just mark them.
     on_complete: check-gaps

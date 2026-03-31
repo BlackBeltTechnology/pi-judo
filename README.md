@@ -666,7 +666,7 @@ export default function activate(pi: ExtensionAPI) {
 
 ### Template variables
 
-Flows use pi-flows' standard template variables (`${{task}}`, `${{result.*}}`, `${{input.*}}`, `${{fork.*}}`, `${{loop.*}}`). There are no JUDO-specific template variables — the extension injects change-scoped paths via `${{task}}` text and agent `context:` file resolution.
+Flows use pi-flows' standard template variables (`${{task}}`, `${{result.*}}`, `${{input.*}}`, `${{loop.*}}`). Fork context (question, answer, notes) is automatically injected into branch steps — no manual wiring needed. There are no JUDO-specific template variables — the extension injects change-scoped paths via `${{task}}` text and agent file resolution.
 
 ### Discovery priority
 

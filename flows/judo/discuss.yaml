@@ -55,8 +55,7 @@ steps:
     task: >
       MODE: Pre-proposal design discussion.
       Present the high-priority questions from the decomposition for the user
-      to answer. The user's selections and notes are:
-      ${{fork.high-priority.notes}}
+      to answer.
 
       Decomposition context: ${{result.decompose.summary}}
 
@@ -84,7 +83,6 @@ steps:
     task: >
       MODE: Pre-proposal design discussion.
       Present the low-priority questions the user wants to answer.
-      User's selections: ${{fork.low-priority.notes}}
       Prior decisions: ${{result.answer-high.summary}}
       Decomposition: ${{result.decompose.summary}}
 
@@ -128,7 +126,6 @@ steps:
     task: >
       MODE: Pre-proposal design discussion.
       The user wants to override specific decisions in design.md.
-      Overrides: ${{fork.override-gate.notes}}
       Re-write design.md with the user's overrides applied.
       Prior context: ${{result.finalize.summary}}
 

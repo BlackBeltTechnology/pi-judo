@@ -11,7 +11,6 @@ import { setupFooter } from "./footer.js";
 
 import { SessionFileTracker } from "./file-tracker.js";
 import { registerStatusCommand } from "./commands/status.js";
-import { runOnboardingFlow } from "./onboarding.js";
 
 
 // Card metric renderers
@@ -57,13 +56,6 @@ export default function activate(pi: ExtensionAPI) {
   // ---------------------------------------------------------------------------
 
   pi.events?.emit("flow:register-workflow", {
-    id: "research-all",
-    stages: [
-      { name: "research", flows: ["judo:research-all"] },
-    ],
-  });
-
-  pi.events?.emit("flow:register-workflow", {
     id: "research",
     stages: [
       { name: "research", flows: ["judo:research"] },
@@ -88,7 +80,7 @@ export default function activate(pi: ExtensionAPI) {
     name: "judo-research",
     check: hasResearch,
     flows: ["judo:research"],
-    message: "No research directory found. Run /judo:research-all first to populate research.",
+    message: "No research directory found. Run /judo:research first to scan the codebase.",
   });
 
   // ---------------------------------------------------------------------------
@@ -217,15 +209,8 @@ export default function activate(pi: ExtensionAPI) {
     // JUDO project with existing research — nothing to prompt
     if (hasResearch()) return;
 
-    // No research yet — onboarding flow
-    const choice = await ctx.ui.select(
-      "No project research found. How would you like to proceed?",
-      ["Explore the project", "Provide specs/files", "Both (provide then explore)", "Skip for now"]
-    );
-
-    if (choice && choice !== "Skip for now") {
-      await runOnboardingFlow(choice, pi, ctx, cwd);
-    }
+    // No research yet — non-blocking warning
+    ctx.ui.notify("No project research found. Run /judo:research to scan the codebase.", "warn");
   });
 
   // Clear warning widget on first agent interaction

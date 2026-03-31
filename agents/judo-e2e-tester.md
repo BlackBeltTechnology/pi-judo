@@ -3,11 +3,9 @@ name: judo-e2e-tester
 description: Playwright E2E tests for frontend scenarios
 model: @coding
 tools: read, write, edit, grep, find, ls, bash, skill_read
-skills: judo-e2e-docs
+skills: judo-e2e-testing-docs, judo-deployment-docs
 inputs:
   - verifier_build
-context:
-  - plan/proposal.md
 card:
   type: tester
   metric: tester
@@ -29,13 +27,13 @@ for frontend scenarios, verifying complete user workflows through the UI.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Build Context
 
 Verifier build output (E2E needs a passing build first):
 
-{input.verifier_build}
+${{input.verifier_build}}
 
 ## Testing Guidelines
 

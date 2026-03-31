@@ -3,11 +3,9 @@ name: judo-frontend-researcher
 description: Investigates frontend React code, hooks, and UI generation patterns
 model: @research
 tools: read, grep, find, ls, skill_read
-skills: judo-frontend-docs
+skills: judo-frontend-docs, judo-model-cli
 inputs:
   - model_context
-context:
-  - research/summary.md
 card:
   type: researcher
   metric: researcher
@@ -29,11 +27,11 @@ You do NOT have bash access. You do NOT have model_cli access.
 
 ## Your Task
 
-{task}
+${{task}}
 
 ## Model Context
 
-{input.model_context}
+${{input.model_context}}
 
 ## Research Guidelines
 

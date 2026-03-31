@@ -1,46 +1,79 @@
 ---
 name: judo-model-docs
-description: JUDO model (ESM) documentation. Covers entity types, transfer objects, relations, enumerations, access points, constraints, and derived attributes. Use when designing, understanding, or modifying a JUDO data model.
+description: Model documentation for JUDO applications. Covers ESM metamodel, cardinality, CRUD flags, and advanced modeling patterns.
+disable-model-invocation: false
+user-invocable: false
+model: inherit
+context: fork
+agent: general-purpose
 ---
 
-# JUDO Model (ESM) Documentation
+# Model Documentation
 
-This skill provides comprehensive reference documentation for the JUDO Entity State Model (ESM). The ESM is the central artifact in a JUDO application -- it defines the data structure, business operations, access points, and constraints from which the entire application (backend, frontend, API) is generated.
+This directory contains documentation related to the application's domain model.
 
-## What is ESM?
+## Model Design & Development
 
-The Entity State Model is a platform-independent model that describes:
+For model design specifications (entities, attributes, relations, operations), see:
+- **JUDOSPEC_PIPELINE.md** `## YAML Requirements Format` - Complete YAML specification format
+- **`judo-model-cli` skill** - CLI commands for querying and mutating models
 
-- **Entity Types** -- The persistent domain objects with their fields and constraints
-- **Transfer Objects (TOs)** -- The data shapes exposed through the API, which may be mapped to entities or stand-alone (unmapped)
-- **Relations** -- How entity types and transfer objects connect to each other (associations, composition, containment)
-- **Enumerations** -- Named sets of constant values
-- **Access Points** -- Entry points that define which transfer objects and operations are visible to which actor types
-- **Operations** -- Business operations (bound to a TO or unbound/exported) that define the application's API surface
-- **Constraints and Derived Attributes** -- Validation rules, calculated fields, and expressions
+**Key principle:** Model changes are designed by `change-architect` using YAML specifications, then executed by `judo-model-designer` using the CLI.
 
-## Model Transformation Pipeline
+## Reference Documentation
 
-The ESM goes through a transformation pipeline:
+- **[Model Development Guide](model-development.md)**: Modeling workflow, naming conventions, and **JQL expression language reference**.
+- **[Advanced Modeling Patterns](advanced-modeling-patterns.md)**: Reusable design patterns for common modeling problems.
+- **[Generalization Guide](generalization-guide.md)**: Entity inheritance and generalization patterns.
+- **[XMI ID Traceability](xmi-id-traceability.md)**: How JUDO maintains traceability from model elements to generated artifacts.
+- **[ESM Metamodel](./esm_metamodel/SKILL.md)**: Detailed breakdown of every component in `esm.ecore`.
+  - [Namespace Package](./esm_metamodel/namespace.md) - Model organization, naming, structure
+  - [Type Package](./esm_metamodel/type.md) - Logical data types (StringType, NumericType, etc.)
+  - [Structure Package](./esm_metamodel/structure.md) - Entities, attributes, relationships
+  - [Operation Package](./esm_metamodel/operation.md) - Service definitions, methods, parameters
+  - [Accesspoint Package](./esm_metamodel/accesspoint.md) - Security model, actors, permissions
+  - [UI Package](./esm_metamodel/ui.md) - User interface definitions
+  - [UI Behaviour](./esm_metamodel/ui-behaviour.md) - Conditional behaviour rules
+  - [UI Visual Style Guide](./esm_metamodel/ui-visual-styleguide.md) - Visual styling rules
+  - [Other Packages](./esm_metamodel/other.md) - Measure, expression, script packages
 
-1. **ESM** (Entity State Model) -- Platform-independent, what the developer writes
-2. **PSM** (Platform-Specific Model) -- Generated from ESM, adds platform details
-3. **ASM** (Application-Specific Model) -- Final artifact used by the runtime
+## Quick Reference
 
-The `model_cli` tool can introspect and query the model at any stage of this pipeline.
+### Cardinality
 
-## Key Principles
+| Cardinality | Meaning | Example |
+|-------------|---------|---------|
+| `1..1` | Required single | `order: Order` (must have exactly one) |
+| `0..1` | Optional single | `logo: Image` (zero or one) |
+| `0..*` | Optional many | `participants: User[]` (zero or more) |
+| `1..*` | Required many | `items: OrderItem[]` (at least one) |
 
-- The model is the single source of truth for the application's structure
-- Changes to the model regenerate the backend and frontend
-- Custom code is preserved through the `.default` file pattern (backend) and customizer pattern (frontend)
-- The model enforces constraints at the DAO layer, ensuring data integrity regardless of the access path
+### CRUD Flags
 
-## Available Reference Files
+| Flag | Purpose |
+|------|---------|
+| `createable` | Entity instances can be created |
+| `updateable` | Entity instances can be modified |
+| `deleteable` | Entity instances can be deleted |
 
-- `entity-types.md` -- Entity type definitions, fields, primitive types, and constraints
-- `transfer-objects.md` -- Mapped and unmapped transfer objects, field mappings between TOs and entities
-- `relations.md` -- Relations, associations, composition, and containment semantics
-- `enumerations.md` -- Enum types, members, and usage patterns
-- `access-points.md` -- Access points, actor types, bound and unbound operations
-- `constraints-and-derived.md` -- Constraints, derived attributes, calculated fields, and expressions
+### Entity YAML Template
+
+```yaml
+name: Customer
+namespace: northwind::entities
+extends: AbstractEntity
+crud:
+  createable: true
+  updateable: true
+  deleteable: true
+attributes:
+  - name: email
+    type: String
+    cardinality: 0..1
+relations:
+  - name: orders
+    target: Order
+    cardinality: 0..*
+    bidirectional: true
+    opposite: customer
+```

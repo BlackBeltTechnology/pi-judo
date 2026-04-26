@@ -1,0 +1,74 @@
+# skills-manifest.yaml
+#
+# Authoritative mapping between upstream agent-docs/ directories and
+# pi-judo skills/ folders.
+#
+# To re-sync skills from upstream:
+#   npm run sync:agent-docs
+#
+# To validate without writing:
+#   npm run sync:agent-docs:lint
+#
+# See README.md § "Updating skills from upstream" for full workflow.
+
+upstream:
+  # Relative path from repo root to the upstream agent-docs directory.
+  root: ../judo-ng/template/judo-esm-fullstack-project-template/judo-esm-fullstack-project-template-root/src/main/resources/agent-docs
+
+# Top-level scope → skill mapping.
+# Each key is a top-level directory name under agent-docs/.
+# The renderer fails non-zero if an unrecognised top-level directory is found.
+scopes:
+  backend:
+    skill: judo-backend-docs
+
+  deployment:
+    skill: judo-deployment-docs
+
+  domain:
+    skill: judo-domain-docs
+
+  e2e-testing:
+    skill: judo-e2e-testing-docs
+
+  frontend:
+    skill: judo-frontend-docs
+
+  integration-testing:
+    skill: judo-integration-testing-docs
+
+  model:
+    skill: judo-model-docs
+
+# Sub-hub entries for nested directories that live inside a scope but route
+# to a sub-directory of the skill folder.
+# The map key is also the identifier used in {{{localHubLink "text" "id"}}}
+# calls, so use the same identifier that appears in the upstream HBS files.
+sub-hubs:
+  frontend-hooks:
+    upstream-path: frontend/hooks
+    skill-path: judo-frontend-docs/hooks
+
+  # No localHubLink id needed for these two — they're only referenced by
+  # docLink path resolution, not by localHubLink.
+  frontend-esm-to-ui:
+    upstream-path: frontend/esm-to-ui-mappings
+    skill-path: judo-frontend-docs/esm-to-ui-mappings
+
+  esm-metamodel:
+    upstream-path: model/esm_metamodel
+    skill-path: judo-model-docs/esm_metamodel
+
+# Glob patterns (relative to agent-docs root) for files to skip entirely.
+# Supports * (within a segment) and ** (any depth).
+ignore:
+  - README.md.hbs                       # top-level README — has no pi-judo equivalent
+  - domain/diagram_generator.py.hbs     # project-runtime script, not skill knowledge
+  - domain/generate-domain-docs.py.hbs
+  - domain/generate-domain-docs.sh.hbs
+
+# Render context substituted into Handlebars templates.
+context:
+  model:
+    name: northwind
+  projectPostfix: ""

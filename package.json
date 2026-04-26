@@ -2,6 +2,7 @@
   "name": "pi-judo",
   "version": "0.1.0",
   "description": "Judo framework extensions, skills, prompts, and themes for pi",
+  "type": "module",
   "keywords": [
     "pi-package"
   ],
@@ -19,21 +20,30 @@
       "./themes"
     ]
   },
+  "scripts": {
+    "sync:agent-docs": "node --experimental-strip-types scripts/sync-agent-docs.ts",
+    "sync:agent-docs:lint": "node --experimental-strip-types scripts/sync-agent-docs.ts --lint",
+    "sync:agent-docs:check": "node --experimental-strip-types scripts/sync-agent-docs.ts --check",
+    "test": "node --experimental-strip-types --test scripts/sync-agent-docs.test.ts"
+  },
   "dependencies": {
-    "pi-flows": "git+ssh://git@github.com:BlackBeltTechnology/pi-flows.git"
+    "pi-flows": "*"
   },
   "peerDependencies": {
-    "pi-flows": "*",
     "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-coding-agent": "*",
     "@mariozechner/pi-tui": "*",
-    "@sinclair/typebox": "*"
+    "@sinclair/typebox": "*",
+    "pi-flows": "*"
   },
   "devDependencies": {
-    "pi-flows": "git+ssh://git@github.com:BlackBeltTechnology/pi-flows.git",
     "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-coding-agent": "*",
     "@mariozechner/pi-tui": "*",
-    "@sinclair/typebox": "*"
+    "@sinclair/typebox": "*",
+    "@types/js-yaml": "^4.0.9",
+    "handlebars": "^4.7.9",
+    "js-yaml": "^4.1.1",
+    "pi-flows": "git+ssh://git@github.com:BlackBeltTechnology/pi-flows.git"
   }
 }

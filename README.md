@@ -429,6 +429,43 @@ Skills are JUDO-specific reference documentation that get injected into agent sy
 | `judo-deployment-docs` | `judo.sh` build commands, Docker setup, Maven, troubleshooting | Verifier, E2E tester |
 | `judo-domain-docs` | Domain-specific business rules, constraints, and project conventions | Proposal writer |
 
+### Updating skills from upstream
+
+The skills under `skills/judo-*-docs/` are generated from the upstream
+[`judo-esm-fullstack-project-template`](https://github.com/BlackBeltTechnology/judo-ng) `agent-docs/`
+Handlebars templates. They are **not edited by hand** — the sync script is the source of truth.
+
+```bash
+# Pull the latest upstream changes into all skill files:
+npm run sync:agent-docs
+
+# Validate templates and links without writing any files:
+npm run sync:agent-docs:lint
+
+# Exit non-zero if any skill file would change (useful in CI):
+npm run sync:agent-docs:check
+```
+
+**Workflow:**
+1. Pull upstream changes (`git pull` in the `judo-ng` repo, or update the submodule/symlink).
+2. Run `npm run sync:agent-docs` from the `pi-judo` repo root.
+3. Review the diff — expect `Modified` lines for content updates and `Created` lines for new pages.
+4. Commit as a single "Sync agent-docs from upstream" commit, separate from any tooling changes.
+
+**Rollback:** `git revert <sync-commit>` is sufficient. The script is idempotent and
+produces byte-stable output for an unchanged upstream.
+
+**Manifest:** `skills-manifest.yaml` (repo root) controls the scope→skill mapping,
+sub-hub routing, ignore list, and render context (`model.name`, `projectPostfix`).
+Edit it when upstream adds a new top-level directory or sub-hub, or when you need
+to ignore additional files.
+
+**Skills NOT managed by sync** (hand-authored, pi-judo-only):
+- `judo-model-cli/` — GraphQL querying, tracing, transform commands
+- `judo-model-cli-mutations/` — GraphQL mutation commands
+- `judo-domain-docs/` — hand-curated domain overview (sync only updates it from upstream
+  `domain/README.md.hbs`; any domain-specific content lives elsewhere)
+
 ### Skill structure
 
 ```

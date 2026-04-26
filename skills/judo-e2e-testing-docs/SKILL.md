@@ -233,7 +233,6 @@ use: {
 - **[Helper Utilities Reference](helpers-reference.md)** - API for generated helpers
 - **[Testing Patterns](testing-patterns.md)** - Common patterns and examples
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
-- **[Model Screen Layout](model-screen-layout.md)** - Understanding model-to-screen layout mappings for test targeting
 
 ## Quick Start Example
 

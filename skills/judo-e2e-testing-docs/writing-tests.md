@@ -10,10 +10,10 @@ Tests are organized in `playwright/tests/` directory. Each test file should focu
 import { test, expect, Page } from '@playwright/test';
 import { TableHelper } from '../helpers/TableHelper';
 import { ApiHelper } from '../helpers/ApiHelper';
-import { 
+import {
   navigateToAccess,
   fillPrimitiveField,
-  TEST_DATA_PREFIX 
+  TEST_DATA_PREFIX
 } from '../helpers/utils';
 import { faker } from '@faker-js/faker';
 
@@ -30,10 +30,10 @@ test.describe('Feature Name', () => {
   test('Test case description', async ({ page }) => {
     // Arrange
     const testData = TEST_DATA_PREFIX + faker.string.alpha(10);
-    
+
     // Act
     await prepareTest(page, testData);
-    
+
     // Assert
     await expect(page.getByText(testData)).toBeVisible();
   });
@@ -64,8 +64,8 @@ await navigateToAccess(page, '󰵲 Entities', /.*~list$/);
 ```typescript
 // Click on table row to open view
 await apiHelper.triggerAndWaitWithRegex(
-  page, 
-  page.getByText(entityName), 
+  page,
+  page.getByText(entityName),
   /.*~get$/
 );
 ```
@@ -139,11 +139,11 @@ await fillPrimitiveField(page, "Discovered", '11/05/2024 12:12:12');
 ### Create Entity (Access Table)
 
 ```typescript
-import { 
-  navigateToAccess, 
-  createOnAccesList, 
+import {
+  navigateToAccess,
+  createOnAccesList,
   fillPrimitiveField,
-  submitOnAccesListCreate 
+  submitOnAccesListCreate
 } from '../helpers/utils';
 
 // Navigate to table
@@ -257,7 +257,7 @@ await selecAllRowsOnTable(page);
 ```typescript
 // Click column header to sort
 await apiHelper.triggerAndWait(
-  page, 
+  page,
   page.locator('.MuiDataGrid-columnHeaderTitle', { hasText: 'Name' })
 );
 ```
@@ -317,19 +317,19 @@ await clearFilters(page);
 
 ```typescript
 await openAddAndApplyFilters(page, apiHelper, [
-  { 
-    attributeName: 'Name', 
-    startOption: 'Like', 
-    option: 'Like', 
-    value: prefix, 
-    type: 'text' 
+  {
+    attributeName: 'Name',
+    startOption: 'Like',
+    option: 'Like',
+    value: prefix,
+    type: 'text'
   },
-  { 
-    attributeName: 'Name', 
-    startOption: 'Like', 
-    option: 'Equal', 
-    value: exactName, 
-    type: 'text', 
+  {
+    attributeName: 'Name',
+    startOption: 'Like',
+    option: 'Equal',
+    value: exactName,
+    type: 'text',
     operationNth: 1,  // Second filter dropdown
     valueNth: 1       // Second value input
   }
@@ -341,7 +341,7 @@ await openAddAndApplyFilters(page, apiHelper, [
 ### Single Relation (Autocomplete)
 
 ```typescript
-import { 
+import {
   fillSingleRelationElement,
   checkSingleRelationElementHasValue,
   checkEmptySingleRelationElement,
@@ -387,8 +387,8 @@ await createSingleRelationElement(page, page, "Owner", [
 import { attachOnSingelRelationElement } from '../helpers/utils';
 
 await attachOnSingelRelationElement(
-  page, 
-  page, 
+  page,
+  page,
   "Owner",           // Relation name
   "Name",            // Filter attribute
   "John",            // Filter value
@@ -400,7 +400,7 @@ await attachOnSingelRelationElement(
 ### Collection Relations
 
 ```typescript
-import { 
+import {
   navigateToCollectionRelationButton,
   createCollectionRelationElement,
   bulkRemoveOnTable,
@@ -463,8 +463,8 @@ await page.getByRole('gridcell', { name: 'Item A' }).click();
 
 // Submit selection
 await apiHelper.triggerAndWaitWithRegex(
-  page, 
-  page.getByRole('button', { name: '󱓞 Submit' }), 
+  page,
+  page.getByRole('button', { name: '󱓞 Submit' }),
   /.*get$/
 );
 ```

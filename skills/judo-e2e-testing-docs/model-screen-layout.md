@@ -37,10 +37,10 @@ When testing, you must navigate through the access hierarchy:
 test('Navigate to Users table', async ({ page }) => {
   // ❌ WRONG: Looking for "Users" menu item
   // await page.getByRole('button', { name: /Users/i }).click();
-  
+
   // ✅ CORRECT: Navigate through Actor access
   await page.getByRole('button', { name: 'Administration' }).click();
-  
+
   // Then navigate to the Users tab within Administration
   await page.getByRole('tab', { name: 'Users' }).click();
 });
@@ -54,11 +54,11 @@ Menu items and tabs can be hidden based on `hiddenBy`, `enabledBy`, and `require
 test('Verify access control hides restricted tabs', async ({ page }) => {
   // Navigate to Administration
   await page.getByRole('button', { name: 'Administration' }).click();
-  
+
   // For users without admin role, sensitive tabs may be hidden
   // Check that the tab exists (or doesn't) based on permissions
   const sensitiveTab = page.getByRole('tab', { name: 'Sensitive Data' });
-  
+
   // If user doesn't have permission, tab should not be visible
   await expect(sensitiveTab).not.toBeVisible();
 });
@@ -74,17 +74,17 @@ test.describe('Access control', () => {
     // Login as admin (if using auth)
     await apiHelper.gotoWithWait(page);
     await page.getByRole('button', { name: 'Administration' }).click();
-    
+
     // Admin should see all tabs
     await expect(page.getByRole('tab', { name: 'Users' })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Settings' })).toBeVisible();
   });
-  
+
   test('Regular user sees limited tabs', async ({ page }) => {
     // Login as regular user
     await apiHelper.gotoWithWait(page);
     await page.getByRole('button', { name: 'Administration' }).click();
-    
+
     // Regular user may not see admin-only tabs
     await expect(page.getByRole('tab', { name: 'Users' })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Settings' })).not.toBeVisible();
@@ -150,16 +150,16 @@ export const ActorWithRealmDashboard = {
 
 ```typescript
 // Import actor-specific constants
-import { 
+import {
   ActorAnon2Dashboard,
-  UserForAnon2TransferObject_Table 
+  UserForAnon2TransferObject_Table
 } from '../helpers/visualElementIds/VisualElementIds';
 
 test('Anonymous user can view public data', async ({ page }) => {
   // Navigate to anonymous dashboard
   await page.goto('/');
   await expect(page.getByTestId(ActorAnon2Dashboard._id)).toBeVisible();
-  
+
   // Access public table
   await page.getByTestId(UserForAnon2TransferObject_Table._id);
 });
@@ -195,13 +195,13 @@ Used for creating new entities.
 export const EntityName_Form = {
   _id: "Actor/(esm/_xxx)/TransferObjectFormPageContainer",
   _label: "EntityName Form",
-  
+
   // Primitive fields
   name: {
     id: "Actor/(esm/_xxx)/StringTypeTextInput",
     label: "Name"
   },
-  
+
   // Page actions
   pageActions: {
     _id: "Actor/(esm/_xxx)/TransferObjectFormButtonGroup",
@@ -235,23 +235,23 @@ Used for listing entities in a data grid.
 export const EntityName_Table = {
   _id: "Actor/(esm/_xxx)/TransferObjectTablePageContainer",
   _label: "EntityName Table",
-  
+
   entityName_Table: {
     _id: "Actor/(esm/_xxx)/TransferObjectTableTable",
     _label: "EntityName Table",
-    
+
     // Table columns
     name: {
       id: "Actor/(esm/_xxx)/TableColumn/(discriminator/...)",
       label: "name"
     },
-    
+
     // Column filters
     nameFilter: {
       id: "Actor/(esm/_xxx)/TableColumnFilter/(discriminator/...)",
       label: "name"
     },
-    
+
     // Table-level actions
     tableActions: {
       _id: "Actor/(esm/_xxx)/TransferObjectTableTableButtonGroup",
@@ -261,7 +261,7 @@ export const EntityName_Table = {
       create: { id: "...", label: "Create" },
       bulkDelete: { id: "...", label: "Delete" }
     },
-    
+
     // Row-level actions
     rowActions: {
       _id: "Actor/(esm/_xxx)/TransferObjectTableRowButtonGroup",
@@ -270,7 +270,7 @@ export const EntityName_Table = {
       delete: { id: "...", label: "Delete" }
     }
   },
-  
+
   // Page-level actions
   pageActions: {
     _id: "Actor/(esm/_xxx)/TransferObjectTableButtonGroup",
@@ -290,21 +290,21 @@ Used for viewing and editing existing entities.
 export const EntityName_View_Edit = {
   _id: "Actor/(esm/_xxx)/TransferObjectViewPageContainer",
   _label: "EntityName View / Edit",
-  
+
   // Primitive fields
   name: {
     id: "Actor/(esm/_xxx)/StringTypeTextInput",
     label: "Name"
   },
-  
+
   // Embedded relations (tables within view)
   relatedItems: {
     _id: "Actor/(esm/_xxx)/TabularReferenceFieldRelationDefinedTable",
     _label: "Related Items",
-    
+
     // Columns
     itemName: { id: "...", label: "ItemName" },
-    
+
     // Embedded table actions
     pageActions: {
       filter: { id: "...", label: "Set Filters" },
@@ -316,13 +316,13 @@ export const EntityName_View_Edit = {
       remove: { id: "...", label: "Remove" }
     }
   },
-  
+
   // Single relation link
   singleRelation: {
     id: "Actor/(esm/_xxx)/TabularReferenceFieldRelationDefinedLink",
     label: "Single Relation"
   },
-  
+
   // Page actions
   pageActions: {
     _id: "Actor/(esm/_xxx)/TransferObjectViewButtonGroup",
@@ -395,32 +395,32 @@ Tab bars group related content into switchable tabs:
 tabBar: {
   _id: "Actor/(esm/_xxx)/TabBarVisualElement",
   _label: "TabBar",
-  
+
   // Tab 1: Simple field
   firstName: {
     id: "Actor/(esm/_xxx)/StringTypeTextInput",
     label: "FirstName"
   },
-  
+
   // Tab 2: Relation link
   topSkill: {
     id: "Actor/(esm/_xxx)/TabularReferenceFieldRelationDefinedLink",
     label: "Top Skill"
   },
-  
+
   // Tab 3: Embedded table
   skills: {
     _id: "Actor/(esm/_xxx)/TabularReferenceFieldRelationDefinedTable",
     _label: "",
     // ... columns and actions
   },
-  
+
   // Tab 4: Button to open relation page
   mentor: {
     id: "Actor/(esm/_xxx)/TabularReferenceFieldButton",
     label: "Mentor"
   },
-  
+
   // Tab 5: Operation/action button
   action: {
     id: "Actor/(esm/_xxx)/OperationFormVisualElement",
@@ -458,14 +458,14 @@ Some entities can have relations to the same entity type, creating hierarchical 
 argument: {
   _id: "Actor/(esm/_xxx)/TabularReferenceFieldRelationDefinedTable",
   _label: "Pro Arguments",
-  
+
   // Child arguments can have their own Pro/Con arguments
   proArguments: {
     _id: "Actor/(esm/_yyy)/TabularReferenceFieldRelationDefinedTable",
     _label: "Pro"
   },
   conArguments: {
-    _id: "Actor/(esm/_zzz)/TabularReferenceFieldRelationDefinedTable", 
+    _id: "Actor/(esm/_zzz)/TabularReferenceFieldRelationDefinedTable",
     _label: "Con"
   }
 }
@@ -489,10 +489,10 @@ test('Navigate recursive structure', async ({ page }) => {
     page.getByRole('button', { name: '󰅂 Submit' }),
     /.*get$/
   );
-  
+
   // View the created argument
   await page.getByRole('button', { name: '󰈈' }).first().click();
-  
+
   // Create sub-argument within the parent
   await apiHelper.triggerAndWaitWithRegex(
     page,
@@ -507,7 +507,7 @@ test('Navigate recursive structure', async ({ page }) => {
     page.getByRole('button', { name: '󰅂 Submit' }),
     /.*get$/
   );
-  
+
   // Verify nested structure
   await expect(page.getByText('Counter Argument')).toBeVisible();
 });
@@ -595,7 +595,7 @@ ok: {
   label: "OK"
 }
 cancel: {
-  id: "Actor/(esm/_xxx)/ActionButtonVisualElement", 
+  id: "Actor/(esm/_xxx)/ActionButtonVisualElement",
   label: "Cancel"
 }
 
@@ -629,21 +629,21 @@ createArgument: {
 test('Execute operation with input form', async ({ page }) => {
   // Trigger operation - waits for template to load
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󰅂 createArgument' }), 
+    page,
+    page.getByRole('button', { name: '󰅂 createArgument' }),
     /.*~template$/  // Template pattern for input forms
   );
-  
+
   // Fill operation input form
   await page.getByRole('textbox', { name: 'Title' }).fill('My Argument');
   await page.getByLabel('Type').click();
   await page.getByRole('option', { name: 'PRO' }).click();
   await page.getByRole('textbox', { name: 'Description' }).fill('Description text');
-  
+
   // Submit operation and wait for response
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󰅂 Submit' }), 
+    page,
+    page.getByRole('button', { name: '󰅂 Submit' }),
     /.*get$/
   );
 });
@@ -657,18 +657,18 @@ Operations without input forms execute immediately:
 test('Execute direct operations', async ({ page }) => {
   // VoteUp - no form, direct execution
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󰅂 voteUp' }), 
+    page,
+    page.getByRole('button', { name: '󰅂 voteUp' }),
     /.*~get$/
   );
-  
+
   // VoteDown
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󰅂 voteDown' }), 
+    page,
+    page.getByRole('button', { name: '󰅂 voteDown' }),
     /.*~get$/
   );
-  
+
   // Verify operation results via field values
   await expect(page.locator('input[name="voteUpCount"]')).toHaveValue('3');
   await expect(page.locator('input[name="voteDownCount"]')).toHaveValue('1');
@@ -714,14 +714,14 @@ rowActions: {
 test('Execute row operation from menu', async ({ page }) => {
   // Open row action menu (kebab menu icon)
   await page.getByRole('button', { name: '󰍝' }).click();
-  
+
   // Click operation in dropdown menu
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('menuitem', { name: '󰅂 CreateBouquet' }), 
+    page,
+    page.getByRole('menuitem', { name: '󰅂 CreateBouquet' }),
     /.*get$/
   );
-  
+
   // Verify operation output
   await expect(page.getByLabel('Pretty')).toBeChecked();
   await expect(page.getByLabel('Decoration')).toHaveValue('ribbon');
@@ -783,7 +783,7 @@ createStaticGarden: {
 ```typescript
 test('Operation without input and output', async ({ page }) => {
   await apiHelper.gotoWithWait(page);
-  
+
   // Trigger operation and verify HTTP 204 (no content)
   const [response] = await Promise.all([
     page.waitForResponse(resp => /.*createRandomGardener$/.test(resp.url())),
@@ -794,14 +794,14 @@ test('Operation without input and output', async ({ page }) => {
 
 test('Operation with mapped output (no input)', async ({ page }) => {
   await apiHelper.gotoWithWait(page);
-  
+
   // Trigger operation, wait for result
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󰉊 Create random flower' }), 
+    page,
+    page.getByRole('button', { name: '󰉊 Create random flower' }),
     /.*get$/
   );
-  
+
   // Verify output form is displayed
   await expect(page.getByLabel('Type')).toHaveValue('Rose');
   await expect(page.getByLabel('Colour')).toHaveValue('white static op');
@@ -809,20 +809,20 @@ test('Operation with mapped output (no input)', async ({ page }) => {
 
 test('Operation with unmapped input and mapped output', async ({ page }) => {
   const address = 'Test Street';
-  
+
   await apiHelper.gotoWithWait(page);
-  
+
   // Trigger operation to open input form
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󰳑 Create static garden' }), 
+    page,
+    page.getByRole('button', { name: '󰳑 Create static garden' }),
     /.*template$/
   );
-  
+
   // Fill input form
   await page.getByRole('tab', { name: 'ATTRIBUTES' }).click();
   await page.getByLabel('Address').fill(address);
-  
+
   // Submit and verify output
   await page.getByRole('button', { name: 'Submit' }).click();
   await expect(page.getByLabel('Address')).toHaveValue(address);
@@ -831,12 +831,12 @@ test('Operation with unmapped input and mapped output', async ({ page }) => {
 test('Operation with mapped input and mapped output', async ({ page }) => {
   // Trigger operation to open selector
   await page.getByRole('button', { name: '󱨟 Create static gardener' }).click();
-  
+
   // Select input entity from table
   await page.getByRole('row', { name: 'Select row John' })
     .getByLabel('Select row').check();
   await page.getByRole('button', { name: '󱓞 Submit' }).click();
-  
+
   // Verify transformed output
   await expect(page.getByLabel('Name')).toHaveValue('John Static Op');
 });
@@ -852,25 +852,25 @@ Some operations require selecting an existing entity as input. These open a tabl
 test('Operation with entity selector input', async ({ page }) => {
   // Trigger operation to open selector
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󰅂 mownTheLawn' }), 
+    page,
+    page.getByRole('button', { name: '󰅂 mownTheLawn' }),
     /.*range$/  // 'range' endpoint loads available options
   );
-  
+
   // Filter and select entity
   await openAddAndApplyFilters(page, apiHelper, [
     { attributeName: 'string', option: 'Like', value: 'Garden Name', type: 'text' },
   ]);
-  
+
   await page.getByRole('gridcell', { name: 'Garden Name' }).click();
-  
+
   // Submit selection
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󱓞 Submit' }), 
+    page,
+    page.getByRole('button', { name: '󱓞 Submit' }),
     /.*get$/
   );
-  
+
   // Verify operation result
   await expect(page.getByText('Freshly Mowed')).toBeChecked();
 });
@@ -896,21 +896,21 @@ Some operations display a confirmation dialog before execution.
 test('Operation with conditional confirmation (condition true)', async ({ page }) => {
   // Trigger operation
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: 'GrowFlowers' }), 
+    page,
+    page.getByRole('button', { name: 'GrowFlowers' }),
     /.*range$/
   );
-  
+
   // Select input
   await page.getByRole('gridcell', { name: gardenName }).click();
-  
+
   // Submit triggers confirmation
   await page.getByRole('button', { name: '󱓞 Submit' }).click();
-  
+
   // Confirm dialog appears - click Yes
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: 'Yes' }), 
+    page,
+    page.getByRole('button', { name: 'Yes' }),
     /.*get$/
   );
 });
@@ -918,17 +918,17 @@ test('Operation with conditional confirmation (condition true)', async ({ page }
 test('Operation with conditional confirmation (condition false)', async ({ page }) => {
   // Different test data that doesn't trigger confirmation
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: 'GrowFlowers' }), 
+    page,
+    page.getByRole('button', { name: 'GrowFlowers' }),
     /.*range$/
   );
-  
+
   await page.getByRole('gridcell', { name: gardenName }).click();
-  
+
   // Submit executes directly without confirmation
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󱓞 Submit' }), 
+    page,
+    page.getByRole('button', { name: '󱓞 Submit' }),
     /.*get$/
   );
 });
@@ -959,24 +959,24 @@ import { EntityName_View_Edit } from '../helpers/visualElementIds/VisualElementI
 
 test('Create and edit row inline', async ({ page }) => {
   const tableLocator = page.getByTestId(EntityName_View_Edit.relatedItems._id).first();
-  
+
   // Click inline create button
   await page.getByRole('button', { name: '󰩵 Create' }).first().click();
-  
+
   // Helper to get cell input for inline editing
   const getGridCellInput = (locator: Locator, row: number, cellName: string) => {
     return tableHelper.getCellInput(tableHelper.getRow(locator, row), cellName);
   };
-  
+
   // Fill inline fields
   await getGridCellInput(tableLocator, 1, "name").fill('New Item');
   await getGridCellInput(tableLocator, 1, "dateAttr").fill('2025-12-10');
   await getGridCellInput(tableLocator, 1, "doubleAttr").fill('3.14');
-  
+
   // Save inline edits (triggers validation)
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    tableLocator.getByLabel('Save'), 
+    page,
+    tableLocator.getByLabel('Save'),
     /.*validate$/
   );
 });
@@ -1030,27 +1030,27 @@ import { GardenInfoView } from '../helpers/visualElementIds/VisualElementIds';
 
 test('Call operation on embedded table row', async ({ page }) => {
   const flowersTable = page.getByTestId(GardenInfoView.flowers._id);
-  
+
   // Open row action menu for first row
   await page.getByRole('button', { name: '󰍝' }).first().click();
-  
+
   // Click Change Color operation
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByText('Change Color'), 
+    page,
+    page.getByText('Change Color'),
     /.*template$/
   );
-  
+
   // Fill operation input form
   await page.getByLabel('Colour *').fill('green');
-  
+
   // Submit operation
   await apiHelper.triggerAndWaitWithRegex(
-    page, 
-    page.getByRole('button', { name: '󰏘 Submit' }), 
+    page,
+    page.getByRole('button', { name: '󰏘 Submit' }),
     /.*get$/
   );
-  
+
   // Verify table row updated
   const firstRow = tableHelper.getRow(flowersTable, 1);
   expect(tableHelper.getCell(firstRow, 'colour')).toContainText('green');
@@ -1094,7 +1094,7 @@ Tag components use the same base ID as tables but render differently:
 manyAggregationCompostion: {
   _id: "Actor/(esm/_xxx)/TabularReferenceFieldRelationDefinedTable",
   _label: "Many Aggregation Compostion",
-  
+
   pageActions: {
     clear: { id: "...", label: "Clear" }
   }
@@ -1108,13 +1108,13 @@ import { EntityName_View_Edit } from '../helpers/visualElementIds/VisualElementI
 
 test('Interact with tag components', async ({ page }) => {
   const tagContainer = page.getByTestId(EntityName_View_Edit.tags._id).first();
-  
+
   // Remove a specific tag by clicking its X icon
   await tagContainer
     .getByRole('button', { name: 'Tag Name', exact: true })
     .locator('> svg')
     .click();
-  
+
   // Add a tag via autocomplete
   const inputLocator = tagContainer.locator('input');
   await Promise.all([
@@ -1122,7 +1122,7 @@ test('Interact with tag components', async ({ page }) => {
     inputLocator.fill('Search Term')
   ]);
   await page.getByRole('option', { name: 'Option Name' }).click();
-  
+
   // Clear all tags
   await tagContainer.getByRole('button', { name: '󰅖' }).click();
 });
@@ -1148,13 +1148,13 @@ When setting a single relation (1:1 or N:1), a "Set" selector opens a table to c
 test('Set single relation target', async ({ page }) => {
   // Click set button to open target selector
   await page.getByTestId(EntityName_View_Edit.singleRelation.id).click();
-  
+
   // Or use the set action from pageActions
   await page.getByTestId(EntityName_View_Edit.relation.pageActions.set.id).click();
-  
+
   // Select from table in modal
   await tableHelper.getCell(tableHelper.getRow(selectorTable, 1), "name").click();
-  
+
   // Confirm selection
   await page.getByRole('button', { name: 'Set' }).click();
 });
@@ -1177,7 +1177,7 @@ await linkLocator.getByRole('button', { name: '󰅀' }).click();
 // - Open selector dialog (󰌷)
 await page.getByRole('menuitem', { name: '󰌷 Open selector dialog' }).click();
 
-// - Unset element (󰌸)  
+// - Unset element (󰌸)
 await page.getByRole('menuitem', { name: '󰌸 Unset element' }).click();
 
 // - Delete element (󰗨)
@@ -1204,21 +1204,21 @@ import { BoxSingleRelationsView } from '../helpers/visualElementIds/VisualElemen
 
 test('Test single relation operations', async ({ page }) => {
   const lidLocator = page.getByTestId(BoxSingleRelationsView.lid.id).first();
-  
+
   // Set relation via selector
   await lidLocator.getByRole('button', { name: '󰌷' }).click();
   await page.getByRole('row', { name: 'Select row Gray tiny' })
     .getByLabel('Select row').check();
   await page.getByRole('button', { name: '󱫄 Set' }).click();
   await page.getByRole('button', { name: '󰆓 Update' }).click();
-  
+
   // Verify value is set
   await expect(page.getByRole('combobox', { name: 'Lid' })).toHaveValue('Gray');
-  
+
   // Unset the relation
   await lidLocator.getByRole('button', { name: '󰅀' }).click();
   await page.getByRole('menuitem', { name: '󰌸 Unset element' }).click();
-  
+
   // Verify empty
   await expect(page.getByRole('combobox', { name: 'Lid' })).toBeEmpty();
 });
@@ -1233,17 +1233,17 @@ Inline association tables allow adding existing entities to a relation without c
 ```typescript
 test('Add existing entity to association', async ({ page }) => {
   const tableLocator = page.getByTestId(EntityName_View_Edit.associations._id);
-  
+
   // Click add button to open selector
   await page.getByTestId(EntityName_View_Edit.associations.pageActions.add.id).click();
-  
+
   // Select entities in the modal table
   await tableHelper.getRowCheckbox(selectorTable, 1).click();
   await tableHelper.getRowCheckbox(selectorTable, 2).click();
-  
+
   // Confirm selection
   await page.getByRole('button', { name: 'Add' }).click();
-  
+
   // Verify entities appear in the association table
   await expect(tableLocator).toContainText('Entity 1');
   await expect(tableLocator).toContainText('Entity 2');
@@ -1255,10 +1255,10 @@ test('Add existing entity to association', async ({ page }) => {
 ### Import the Constants
 
 ```typescript
-import { 
+import {
   EntityName_Form,
   EntityName_Table,
-  EntityName_View_Edit 
+  EntityName_View_Edit
 } from '../helpers/visualElementIds/VisualElementIds';
 ```
 
@@ -1284,10 +1284,10 @@ import { ReadOnlyTestSpaceShipTransferSpaceShipTransfer_Form } from '../helpers/
 
 test('Test min and max range of numeric values', async ({ page }) => {
   const Space_Ship_Transfer_Form = ReadOnlyTestSpaceShipTransferSpaceShipTransfer_Form;
-  
+
   // Fill field with invalid value
   await page.getByLabel('Diameter').fill('1');
-  
+
   // Check validation message appears in the field container
   await expect(page.getByTestId(Space_Ship_Transfer_Form.lenght.id))
     .toContainText('The value must be at least (5).');
@@ -1302,9 +1302,9 @@ import { EntityName_Table } from '../helpers/visualElementIds/VisualElementIds';
 test('Filter and verify table data', async ({ page }) => {
   // Click filter button
   await page.getByTestId(EntityName_Table.entityName_Table.tableActions.filter.id).click();
-  
+
   // Apply filter...
-  
+
   // Click row view action (using TableHelper for MUI DataGrid)
   const row = tableHelper.getRow(page, 1);
   await tableHelper.getCell(row, "name").click();

@@ -171,9 +171,9 @@ await expect(page.getByTestId(ADMIN_VIEW_ELEMENT)).toBeVisible();
 Import from the generated helpers:
 
 ```typescript
-import { 
+import {
   ServiceAdmininstrationAdmininstration_View_Edit,
-  ServiceAddressAddressViewEdit 
+  ServiceAddressAddressViewEdit
 } from "../helpers/visualElementIds/VisualElementIds";
 
 // Use for tables
@@ -248,18 +248,18 @@ async function navigateToAddresses(page: any) {
   // Step 1: Click Administration menu via href pattern
   const adminLink = page.locator('a[href*="/Service/Actor/Administration/"]');
   await Promise.all([
-    page.waitForResponse((resp: any) => 
+    page.waitForResponse((resp: any) =>
       resp.url().includes("/api/") && resp.status() === 200
     ),
     adminLink.click()
   ]);
-  
+
   // Step 2: Wait for view to load
   await expect(page.getByTestId(ADMIN_VIEW_ELEMENT)).toBeVisible({ timeout: 15000 });
-  
+
   // Step 3: Click tab via testid
   await page.getByTestId(ADDRESSES_TAB).click();
-  
+
   // Step 4: Wait for table with .first() for duplicate testids
   await expect(
     page.getByTestId(
@@ -271,7 +271,7 @@ async function navigateToAddresses(page: any) {
 test("should navigate to addresses", async ({ page }) => {
   await apiHelper.gotoWithWait(page, "/");
   await navigateToAddresses(page);
-  
+
   // Assert table is visible
   const table = page.getByTestId(
     ServiceAdmininstrationAdmininstration_View_Edit.administrationTabBar.addresses._id
@@ -292,19 +292,19 @@ async function navigateToAddressEvents(page: any) {
   // Navigate to Administration
   const adminLink = page.locator('a[href*="/Service/Actor/Administration/"]');
   await Promise.all([
-    page.waitForResponse((resp: any) => 
+    page.waitForResponse((resp: any) =>
       resp.url().includes("/api/") && resp.status() === 200
     ),
     adminLink.click()
   ]);
   await expect(page.getByTestId(ADMIN_VIEW_ELEMENT)).toBeVisible({ timeout: 15000 });
-  
+
   // Click parent tab first
   await page.getByTestId(CAMPAIGNS_TAB).click();
-  
+
   // Then click nested tab
   await page.getByTestId(ADDRESS_EVENTS_TAB).click();
-  
+
   // Wait for nested table
   await expect(
     page.getByTestId(
@@ -322,15 +322,15 @@ Use debug tests to discover actual testids on a page:
 ```typescript
 test("debug - discover testids", async ({ page }) => {
   await apiHelper.gotoWithWait(page, "/");
-  
+
   // Navigate to the page you want to inspect
   const adminLink = page.locator('a[href*="/Service/Actor/Administration/"]');
   await adminLink.click();
   await page.waitForTimeout(3000);
-  
+
   // Find all elements with data-testid
   const elementsWithTestId = await page.locator("[data-testid]").all();
-  
+
   for (const element of elementsWithTestId) {
     const testid = await element.getAttribute("data-testid");
     const tagName = await element.evaluate((el) => el.tagName);
@@ -454,7 +454,7 @@ test.describe("Navigation from read-only parent", () => {
   test("should navigate to child in view-only mode", async ({ page }) => {
     // Navigate to child via grid row
     await viewButton.click();
-    
+
     // Child fields should NOT be editable (parent U=false)
     const nameField = page.getByTestId(childView.name.id);
     await expect(nameField).toBeDisabled();  // or check for read-only state
@@ -467,7 +467,7 @@ test.describe("Navigation from read-only parent", () => {
 test.describe("Navigation from updatable parent", () => {
   test("should navigate to child with edit capability", async ({ page }) => {
     await viewButton.click();
-    
+
     // Child fields should be editable (parent U=true)
     const nameField = page.getByTestId(childView.name.id);
     await expect(nameField).toBeEditable();
@@ -475,7 +475,7 @@ test.describe("Navigation from updatable parent", () => {
 
   test("should have delete button", async ({ page }) => {
     await viewButton.click();
-    
+
     // Delete button visible (parent D=true)
     await expect(page.getByRole("button", { name: /Delete/i })).toBeVisible();
   });
@@ -484,7 +484,7 @@ test.describe("Navigation from updatable parent", () => {
 
 **Navigation Sources Affected:**
 - Grid/Table row view button click
-- Tag component click  
+- Tag component click
 - Single relation link click
 
 ### Runtime Override via JSON (`__updateable`, `__deleteable`)
@@ -504,7 +504,7 @@ When testing with specific data, be aware that some records may have these flags
 test("should handle record with disabled update", async ({ page }) => {
   // Navigate to a record that has __updateable: false in API response
   await viewButton.click();
-  
+
   // Even though parent relation has U=true, this specific record is read-only
   const nameField = page.getByTestId(view.name.id);
   await expect(nameField).toBeDisabled();
@@ -513,7 +513,7 @@ test("should handle record with disabled update", async ({ page }) => {
 test("should handle record with disabled delete", async ({ page }) => {
   // Navigate to a record that has __deleteable: false in API response
   await viewButton.click();
-  
+
   // Delete button should NOT be visible for this record
   await expect(page.getByRole("button", { name: /Delete/i })).not.toBeVisible();
 });
@@ -529,7 +529,7 @@ test("should handle record with disabled delete", async ({ page }) => {
 ```typescript
 test.describe("Public Space Types (Read-Only)", () => {
   // This relation only has R flag - no create/delete operations
-  
+
   test("should display table", async ({ page }) => {
     await expect(publicSpaceTypesTable).toBeVisible();
   });
@@ -543,7 +543,7 @@ test.describe("Public Space Types (Read-Only)", () => {
 
 test.describe("Addresses (Full CRUD)", () => {
   // This relation has CRUD flags - all operations available
-  
+
   test("should have create button", async ({ page }) => {
     await expect(createButton).toBeVisible();
   });

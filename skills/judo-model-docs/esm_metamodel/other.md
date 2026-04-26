@@ -1,6 +1,6 @@
 # Other Packages Reference
 
-**[◄ Back to Index](./SKILL.md)**
+**[◄ Back to Index](../SKILL.md)**
 
 This document covers the supporting packages in the ESM metamodel: `measure`, `expression`, and `script`.
 

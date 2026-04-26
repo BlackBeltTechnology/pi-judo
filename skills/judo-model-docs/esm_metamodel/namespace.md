@@ -1,6 +1,6 @@
 # `namespace` Package
 
-**[◄ Back to Index](./SKILL.md)**
+**[◄ Back to Index](../SKILL.md)**
 
 The `namespace` package provides the foundational elements for structuring the entire ESM model. It contains the containers, naming conventions, and annotation mechanisms that organize all other elements.
 

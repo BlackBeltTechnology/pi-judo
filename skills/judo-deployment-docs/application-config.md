@@ -105,7 +105,7 @@ JUDO_PLATFORM_KEYCLOAK_REALM → keycloakRealm
 **JUDO_PLATFORM_DATASOURCE_URL**
 - **Description**: JDBC connection URL
 - **Format**: `jdbc:<dialect>://<host>:<port>/<database>`
-- **Example**: 
+- **Example**:
   - PostgreSQL: `jdbc:postgresql://localhost:5432/northwind`
   - HSQLDB: `jdbc:hsqldb:mem:northwind`
 
@@ -139,7 +139,7 @@ JUDO_PLATFORM_KEYCLOAK_REALM → keycloakRealm
 **JUDO_PLATFORM_DATASOURCE_MAX_POOL_SIZE**
 - **Description**: Maximum database connections in pool
 - **Default**: `10`
-- **Recommended**: 
+- **Recommended**:
   - Development: `5-10`
   - Production: `20-50`
 

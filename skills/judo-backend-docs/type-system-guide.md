@@ -123,6 +123,37 @@ AddressForCreate address = AddressForCreate.builder()
 
 ---
 
+## Reading Nested Collections From Input / Composition TOs
+
+> [!IMPORTANT]
+> **Generated input/composition TOs expose only *scalar* typed getters.**
+
+For a `TransferObjectType` used as an operation **input** (or as a nested composition inside one), the generator emits typed getters (`getXxx()`) only for **scalar** attributes. **Nested collections of TOs are not exposed through a typed getter** — attempting `input.getChildren()` where `children` is a collection composition will not compile against the generated input TO.
+
+The nested payload is still present; it travels through the generic map view of the TO:
+
+```java
+// Given: ParentInputTO with a composition 'children : ChildTO[*]'
+Map<String, Object> raw = input.toMap();
+
+@SuppressWarnings("unchecked")
+List<Map<String, Object>> childMaps =
+    (List<Map<String, Object>>) raw.getOrDefault("children", List.of());
+
+List<ChildTO> children = childMaps.stream()
+    .map(ChildTO::from)   // rehydrate typed TO from the map view
+    .toList();
+```
+
+**Key points:**
+- `toMap()` is the canonical read path for nested composition payloads on input TOs.
+- Each element is a `Map<String, Object>`; rehydrate with the child TO's static `from(Map)` factory to get a typed object back.
+- The same rule applies recursively: a child's own nested collections are again `List<Map<String,Object>>` under `from(...).toMap()`.
+- Output/query TOs (those returned by DAOs) are unaffected — they expose typed collection getters.
+- If you find yourself reaching for reflection or string-keyed casts in business code, factor the `toMap() → from(...)` hop into a small helper per parent TO to keep custom ops readable.
+
+---
+
 ## Pro Tips for Avoiding Errors
 
 1.  **Check Your Imports**: The most common mistake is importing the wrong package. Always double-check if you're importing from `...service.*` or `..._default_transferobjecttypes.entity.*`.

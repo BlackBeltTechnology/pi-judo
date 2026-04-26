@@ -41,7 +41,7 @@ JUDO generates two separate type hierarchies:
 
 **Represents**: Direct database representation
 
-**Package pattern**: 
+**Package pattern**:
 ```
 [your.package].[yourmodel].api.[yourmodel]._default_transferobjecttypes.entity.<entityname>
 ```

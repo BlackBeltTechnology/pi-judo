@@ -748,4 +748,4 @@ handleResult: (input) => {
 - [Table Hooks](./table-hooks.md)
 - [Validation Hooks](./validation-hooks.md)
 - [Navigation and Access](./navigation-and-access.md)
-- Development Workflow (see `judo-development-workflow.md-docs` skill)
+- [Development Workflow](../development-workflow.md)

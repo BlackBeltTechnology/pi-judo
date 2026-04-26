@@ -49,7 +49,7 @@ public class MyServiceImpl implements MyService {
 
 ```java
 // Mandatory dependency (will fail to activate if not available)
-@Reference                          
+@Reference
 private Dao<ChildEntity> childEntityDao;
 
 // Optional dependency
@@ -235,15 +235,15 @@ import java.time.LocalDate;
 import java.util.regex.Pattern;
 
 public final class ValidationUtils {
-    
+
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
     );
-    
+
     private ValidationUtils() {
         throw new UnsupportedOperationException("Utility class");
     }
-    
+
     public static void validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("Email is required");
@@ -252,7 +252,7 @@ public final class ValidationUtils {
             throw new IllegalArgumentException("Invalid email format: " + email);
         }
     }
-    
+
     public static void validateDateRange(LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Start date and end date are required");
@@ -263,13 +263,13 @@ public final class ValidationUtils {
             );
         }
     }
-    
+
     public static void validateRequired(String value, String fieldName) {
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException(fieldName + " is required");
         }
     }
-    
+
     public static void validateNotNull(Object value, String fieldName) {
         if (value == null) {
             throw new IllegalArgumentException(fieldName + " is required");
@@ -299,11 +299,11 @@ Create a null-safe type conversion utility for service-to-entity layer conversio
 package [your.package].utils;
 
 public final class TypeConverter {
-    
+
     private TypeConverter() {
         throw new UnsupportedOperationException("Utility class");
     }
-    
+
     public static <T> T convert(hu.blackbelt.judo.sdk.MapHolder source, Class<T> targetClass) {
         if (source == null) {
             return null;
@@ -325,25 +325,25 @@ Settlement entitySettlement = TypeConverter.convert(input.getSettlement(), Settl
 ```java
 @Component(immediate = true, service = CreateEvent.class)
 public class CreateEventCustomImplementation implements CreateEvent {
-    
+
     @Reference EventDao eventDao;
     @Reference UserDao userDao;
     @Reference VariableResolver variableResolver;
-    
+
     @Override
     public void accept(Administration _this, CreateEventInput input) {
         // Get current authenticated user
         User currentUser = getCurrentUser();
-        
+
         // Use in entity creation for auditing
         EventForCreate event = EventForCreate.builder()
             .withEventDateTime(input.getEventDateTime())
             .withCreatedBy(currentUser)
             .build();
-        
+
         eventDao.create(event);
     }
-    
+
     /**
      * Gets the currently authenticated user from VariableResolver.
      */
@@ -367,28 +367,28 @@ public class CreateEventCustomImplementation implements CreateEvent {
 ```java
 @Component(immediate = true, service = InitAdminUser.class)
 public class InitAdminUserCustomImplementation implements InitAdminUser {
-    
+
     private static final String ADMIN_USERNAME = "admin";
-    
+
     @Reference UserDao userDao;
-    
+
     @Override
     public void run() {
         // Check if the entity already exists before creating it.
         Optional<User> existingAdmin = userDao.query()
             .filterByUserName(StringFilter.equalTo(ADMIN_USERNAME))
             .selectOne();
-        
+
         if (existingAdmin.isPresent()) {
             return;  // Early return makes the operation idempotent.
         }
-        
+
         // Create only if it's missing.
         UserForCreate adminUser = UserForCreate.builder()
             .withUserName(ADMIN_USERNAME)
             .withIsAdmin(true)
             .build();
-        
+
         userDao.create(adminUser);
     }
 }
@@ -401,7 +401,7 @@ public class InitAdminUserCustomImplementation implements InitAdminUser {
 ```java
 @Component(immediate = true, service = CreateEvent.class)
 public class CreateEventCustomImplementation implements CreateEvent {
-    
+
     @Override
     public void accept(Administration _this, CreateEventInput input) {
         // If consent is given, the signer's name becomes required.
@@ -410,15 +410,15 @@ public class CreateEventCustomImplementation implements CreateEvent {
                 throw new IllegalArgumentException("Signer name is required when data protection consent is given");
             }
         }
-        
+
         // If one coordinate is provided, the other must also be provided.
         boolean hasLatitude = input.getLatitude() != null && input.getLatitude().isPresent();
         boolean hasLongitude = input.getLongitude() != null && input.getLongitude().isPresent();
-        
+
         if (hasLatitude != hasLongitude) {
             throw new IllegalArgumentException("Both latitude and longitude must be provided, or neither.");
         }
-        
+
         // ... rest of implementation
     }
 }
@@ -431,20 +431,20 @@ public class CreateEventCustomImplementation implements CreateEvent {
 ```java
 @Component(immediate = true, service = CreateUser.class)
 public class CreateUserCustomImplementation implements CreateUser {
-    
+
     @Reference UserDao userDao;
-    
+
     @Override
     public void accept(Administration _this, CreateUserInput input) {
         // Perform separate queries to check uniqueness for each field.
         if (userDao.query().filterByUserName(StringFilter.equalTo(input.getUserName())).count() > 0) {
             throw new IllegalStateException("Username already exists");
         }
-        
+
         if (userDao.query().filterByEmail(StringFilter.equalTo(input.getEmail())).count() > 0) {
             throw new IllegalStateException("Email address already exists");
         }
-        
+
         // ... create user
     }
 }
@@ -457,22 +457,22 @@ public class CreateUserCustomImplementation implements CreateUser {
 ```java
 @Component(immediate = true, service = CreateEvent.class)
 public class CreateEventCustomImplementation implements CreateEvent {
-    
+
     @Override
     public void accept(Administration _this, CreateEventInput input) {
         ValidationUtils.validateNotNull(input.getEventDateTime(), "Event datetime");
-        
+
         // Prevent future timestamps for historical events.
         if (input.getEventDateTime().isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("Event datetime cannot be in the future");
         }
-        
+
         // Use the utility for date range validation.
         if (input.getStartDate() != null && input.getStartDate().isPresent() &&
             input.getEndDate() != null && input.getEndDate().isPresent()) {
             ValidationUtils.validateDateRange(input.getStartDate().get(), input.getEndDate().get());
         }
-        
+
         // ... create event
     }
 }
@@ -485,17 +485,17 @@ public class CreateEventCustomImplementation implements CreateEvent {
 ```java
 @Component(immediate = true, service = CreateUser.class)
 public class CreateUserCustomImplementation implements CreateUser {
-    
+
     @Override
     public void accept(Administration _this, CreateUserInput input) {
         boolean hasRole = Boolean.TRUE.equals(input.getIsAdmin()) ||
                          Boolean.TRUE.equals(input.getIsManager()) ||
                          Boolean.TRUE.equals(input.getIsEditor());
-        
+
         if (!hasRole) {
             throw new IllegalArgumentException("User must have at least one role (Admin, Manager, or Editor) assigned.");
         }
-        
+
         // ... create user
     }
 }

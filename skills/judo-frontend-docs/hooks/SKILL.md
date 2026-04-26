@@ -517,4 +517,4 @@ import { TableRowHighlightingHook } from '~/generated/hooks';
 - [Action Hooks](./action-hooks.md) - Container actions, operations
 - [Navigation and Access](./navigation-and-access.md) - Redirects, access control
 - [Validation Hooks](./validation-hooks.md) - Date/DateTime validation
-- Main README (see `judo-README.md-docs` skill) - Overview and architecture
+- [Main README](../SKILL.md) - Overview and architecture

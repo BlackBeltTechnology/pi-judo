@@ -162,7 +162,7 @@ Sometimes automatic generation cannot handle complex migrations:
 -- migration/1.1.0__1.2.0_manual.sql
 
 -- Custom data migration
-UPDATE t_entity_user 
+UPDATE t_entity_user
 SET full_name = CONCAT(first_name, ' ', last_name)
 WHERE full_name IS NULL;
 
@@ -359,7 +359,7 @@ volumes:
    mvn judo-rdbms-schema:generate \
      -DbaseModelVersion=${CURRENT_PROD_VERSION} \
      -DupdateModelVersion=${NEW_VERSION}
-   
+
    # Review generated SQL
    cat migration/${CURRENT_PROD_VERSION}__${NEW_VERSION}.sql
    ```
@@ -474,13 +474,13 @@ UPDATE databasechangeloglock SET locked = false;
   ```sql
   -- Add new column with new type
   ALTER TABLE t_entity_user ADD COLUMN age_new INTEGER;
-  
+
   -- Convert data
   UPDATE t_entity_user SET age_new = CAST(age_old AS INTEGER);
-  
+
   -- Drop old column
   ALTER TABLE t_entity_user DROP COLUMN age_old;
-  
+
   -- Rename new column
   ALTER TABLE t_entity_user RENAME COLUMN age_new TO age;
   ```

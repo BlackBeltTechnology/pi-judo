@@ -25,9 +25,15 @@ The metamodel is organized into several distinct packages, each responsible for 
 
 *   [**`ui` Package](./ui.md)
     *   **Purpose**: User interface definitions, including forms, tables, fields, and their direct binding to the data and operation models (e.g., `TransferObjectView`, `DataField`, `OperationForm`).
+    *   **Authoring workflow**: For composing these elements into Form / Table / View scaffolds, see [UI Authoring Guide](../ui-authoring-guide.md).
 
 *   [**UI Visual Style Guide**](./ui-visual-styleguide.md)
     *   **Purpose**: Visual style indicators and styling rules for model elements and UI components.
 
 *   [**Other Packages (`measure`, `expression`, `script`)**](./other.md)
     *   **Purpose**: Supporting packages for handling physical units of measure, embedded expressions, and implementation scripts.
+
+## Cross-Cutting References
+
+*   [**Generator Reserved Names**](./generator-reserved-names.md)
+    *   **Purpose**: Relation/attribute names that collide with methods emitted by the frontend/service generators (e.g. `template` on a `createable` TO). Avoid these at modelling time to prevent downstream `TS2393 Duplicate function implementation` errors.

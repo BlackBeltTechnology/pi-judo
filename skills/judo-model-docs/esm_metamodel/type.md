@@ -1,6 +1,6 @@
 # `type` Package Reference
 
-**[◄ Back to Index](./SKILL.md)**
+**[◄ Back to Index](../SKILL.md)**
 
 This package defines the logical, platform-independent data types used throughout the model. These types are abstract and are meant to be mapped to concrete physical types by a code generator for a specific target platform (e.g., a `StringType` might become a `VARCHAR` in SQL or a `java.lang.String` in Java).
 
@@ -100,6 +100,12 @@ These rules define how type elements behave based on their context and attribute
 **MimeType Format:** `type/subType` (e.g., `image/png`, `application/pdf`)
 
 **MimeType Candidates:** Selected from `Model.mimeTypes` collection.
+
+**`MimeType` attribute rules:** only `type` and `subType` — no `name`, no `label`. Adding `name="image/png"` fails ESM transform with `Feature 'name' not found`.
+
+**Declaration site:** `<mimeTypes>` is a direct child of the root `<namespace:Model>`; `BinaryType.mimeTypes` references them as a space-separated id list (`mimeTypes="_id1 _id2"`).
+
+Omitting `mimeTypes` on a `BinaryType` fails EMF validation: *"The feature 'mimeTypes' … with 0 values must have at least 1 values"*.
 
 ### EnumerationType Attribute Rules
 

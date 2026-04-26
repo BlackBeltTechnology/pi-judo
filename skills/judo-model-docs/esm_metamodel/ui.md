@@ -1,8 +1,10 @@
 # `ui` Package Reference
 
-**[◄ Back to Index](./SKILL.md)**
+**[◄ Back to Index](../SKILL.md)**
 
 This package defines the user interface in a declarative way. Its elements create a direct and strong binding to the data models in the `structure` package and the business logic in the `operation` package. A UI generator can use this model to create a complete, functional user interface.
+
+**This file is the per-element reference.** For the **composition / authoring workflow** — how to assemble `<form>`, `<table>`, `<view>` scaffolds on a `TransferObjectType`, the `xsi:type` rules for abstract containments, data binding, layout, and end-to-end wiring onto an `ActorType` menu — see [UI Authoring Guide](../ui-authoring-guide.md).
 
 ---
 
@@ -404,6 +406,45 @@ A column within a table, displaying a single attribute for each row.
 | `columnReference` | Reference | Reference to another column definition |
 
 **Binding:** Bound to `structure:DataMember`.
+
+**XMI gotcha — `columns` is typed as the abstract `Column`.** Unlike `form` / `table` / `view` (concrete containments), each `<columns>` child must carry `xsi:type="ui:DataColumn"` (or `ui:RelationColumn`) and the root `<namespace:Model>` must declare `xmlns:ui="http://blackbelt.hu/judo/meta/esm/ui"`. Otherwise the loader fails with *"Class 'Column' is not found or is abstract"*. The same rule applies to every containment typed by an abstract supertype (`AbstractColumnReference`, `Filter`, `MenuItem`).
+
+**TS2393 symptom reminder.** `error TS2393: Duplicate function implementation` on the generated service means a relation is named identically to a generator-emitted factory method. See [Generator Reserved Names](./generator-reserved-names.md).
+
+### RelationColumn
+
+**Supertypes:** `Column` → `VisualElement` + `AbstractColumnReference` → `NamedElement`
+
+A column within a table that displays a value navigated through a relation — the visible cell shows a scalar **on the related TO**, while the column itself is bound through a `RelationMember` so the framework can format / link the cell.
+
+| Attribute | Type | Required | Description |
+|---|---|---|---|
+| `name` | String | yes | Column identifier |
+| `label` | String | no | Column header (i18n key) |
+| `relationFeature` | Reference | **yes** (lower=1) | Bound to a `structure:OneWayRelationMember` or `TwoWayRelationMember` on the row TO |
+| `dataFeatureOfRelationFeature` | Reference | **yes** (lower=1) | Bound to a `structure:DataMember` on the **target** of `relationFeature`. The cell shows this attribute's value. |
+| `width` | String | no | Column width (CSS value) |
+| `visible` | Boolean | no | Default: true |
+| `sort` | Enum | no | `NONE` / `ASC` / `DESC` |
+| `sortPrecedence` | Integer | no | Sort priority for multi-column sort |
+| `formatValue` | Boolean | no | Apply value formatting (default: true) |
+
+**Both `relationFeature` AND `dataFeatureOfRelationFeature` are required**. Setting only `relationFeature` will pass CLI mutation validation (because the GraphQL Create input doesn't enforce it) but will fail the **build-time ESM validator** with:
+
+> *Diagnostic ERROR … The required feature 'dataFeatureOfRelationFeature' of 'RelationColumnImpl@…' must be set*
+
+Fix on an existing element:
+
+```bash
+judo_cli update -f "RelationColumn::<name>" -s dataFeatureOfRelationFeature=<package>::<TargetTO>.<scalarAttr>
+```
+
+**Frontend codegen warning — do not place `RelationColumn` on a *top-level* `TransferObjectTable`.** When a `RelationColumn` lives directly on the table backing an `Access` / menu entry, the React generator emits broken row-type generics in the list screen (observed symptom: dangling `View<X>Stored` references such as `ViewGalaxyStored` → `error TS2304: Cannot find name 'ViewGalaxyStored'`). Two clean alternatives:
+
+1. **Show the related value in the detail screen.** Place a `TabularReferenceField` (with `representationComponent="button"` for to-one or `"table"` for to-many) inside the TO's `<view>` instead of a `RelationColumn` on the `<table>`.
+2. **Flatten the related value to a scalar.** Add a `DERIVED` `DataMember` (e.g. `partnerName <- partner.name`) on the row TO and use a plain `DataColumn` bound to it. This works on top-level tables.
+
+Reserve `RelationColumn` for tables embedded inside a detail screen (`TabularReferenceField`'s columns), where navigation semantics are expected and the codegen path is safe. See [ui-authoring-guide.md §14 Anti-patterns](../ui-authoring-guide.md) for the full rationale.
 
 ### DataFilter
 
@@ -971,4 +1012,4 @@ Abstract interface for elements that can trigger actions.
 - [ESM Structure Package](./structure.md) - Entity and attribute definitions
 - [ESM Operation Package](./operation.md) - Operation definitions
 - [ESM Accesspoint Package](./accesspoint.md) - Actor and access definitions
-- Frontend Mapping (see `judo-frontend-docs` skill) - ESM to React mapping
+- Frontend ESM-to-UI Mapping (see `judo-frontend-docs` skill) - ESM to React mapping

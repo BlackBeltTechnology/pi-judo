@@ -179,11 +179,11 @@ await applyFilters(page, apiHelper, 1, true);  // true = doWait
 ```typescript
 await openAddAndApplyFilters(page, apiHelper, [
   { attributeName: 'Name', startOption: 'Like', option: 'Like', value: 'A', type: 'text' },
-  { 
-    attributeName: 'Name', 
-    startOption: 'Like', 
-    option: 'Not equal', 
-    value: 'AB', 
+  {
+    attributeName: 'Name',
+    startOption: 'Like',
+    option: 'Not equal',
+    value: 'AB',
     type: 'text',
     operationNth: 1,  // Second dropdown
     valueNth: 1       // Second input
@@ -389,15 +389,15 @@ use: {
 test('Debug test', async ({ page }) => {
   // Log page console
   page.on('console', msg => console.log('PAGE:', msg.text()));
-  
+
   // Log network
   page.on('response', response => {
     console.log('API:', response.status(), response.url());
   });
-  
+
   // Pause execution
   await page.pause();
-  
+
   // Take screenshot
   await page.screenshot({ path: 'debug.png' });
 });

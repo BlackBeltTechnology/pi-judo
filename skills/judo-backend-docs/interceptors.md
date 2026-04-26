@@ -3,6 +3,45 @@
 > [!IMPORTANT]
 > This guide covers `OperationCallInterceptor` for intercepting business logic operations. For handling user authentication events, please see the [Authentication Guide](authentication-guide.md).
 
+## Pattern: Backend-Computed TO Attribute (JQL Escape Hatch)
+
+Certain derived values cannot be expressed as an entity-level `DERIVED` `DataMember`:
+
+- **Bipartite quantifiers** such as "for every supported language ∧ for every paragraph, an approved translation exists" — JQL lambda scopes do not nest, so the outer variable (and `self`) is invisible inside an inner `!forall` / `!filter`.
+- **Collection-valued context variables** — `!getVariable(...)` only returns a scalar `String`; `Sequence<String>!getVariable(...)` is not valid JQL grammar.
+- **External lookups** — anything that requires I/O at read-time.
+
+The canonical escape hatch keeps the value on the TO (so the UI and consumers see it) without forcing it through JQL:
+
+1. **Remove** the `DERIVED` `DataMember` from the `EntityType`.
+2. On each `TransferObjectType` that exposes the value, declare it as `memberType="TRANSIENT"` with **no `binding`**:
+
+    ```xml
+    <attributes xsi:type="structure:DataMember"
+                name="readyForAllLanguages"
+                dataType="_boolTypeId"
+                memberType="TRANSIENT"
+                identifier="false"/>
+    ```
+
+3. Register an `OperationCallInterceptor` that fires **after** the mapped read operations (`_getById`, list queries, etc.), enriching the outgoing payload in place.
+
+```java
+@Component(property = { "judo.model.name=<model>" })
+public class MyTransientEnricher implements OperationCallInterceptor {
+    @Override public List<String> getOperations() {
+        return List.of("<model>.services.MyTO._getById",
+                       "<model>.services.MyTO._query");
+    }
+    @Override public Payload postCall(Payload result, ...) {
+        result.put("readyForAllLanguages", compute(result));
+        return result;
+    }
+}
+```
+
+**Why not a view / union?** A transient TO member is the narrowest, least invasive choice: the entity model stays pure, the TO surface matches the spec, and the value is re-computed per request with no cache-invalidation surface. Use an entity-level denormalisation only when the value must also be filterable/sortable at the DAO layer.
+
 ## Advanced Interceptor Patterns
 
 The JUDO framework provides two types of interceptors, `OperationCallInterceptor` and `AuthenticationInterceptor`, which can be used to implement a variety of powerful, cross-cutting patterns.
@@ -27,7 +66,7 @@ public Object postCall(EOperation operation, Object parameterPayload, Object ret
 
         String tagsAggregated = myEntityDao.queryTags(entity).selectList().stream()
                                       .map(Tag::getName).sorted().collect(Collectors.joining(", "));
-        
+
         if (!entity.getTagsAggregated().orElse("").equals(tagsAggregated)) {
             entity.setTagsAggregated(tagsAggregated);
             myEntityDao.update(entity, MyEntityMask.mask());
@@ -50,7 +89,7 @@ An interceptor like `UserProfileCreateInterceptor` can intercept the creation of
 public Object preCall(EOperation operation, Object parameterPayload) throws InterceptorCallBusinessException {
     if (parameterPayload instanceof CreateInstanceCall.CreateInstanceCallPayload createInstanceCallPayload) {
         UserProfile profile = UserProfile.from(createInstanceCallPayload.getInput());
-        
+
         WelcomeJourneyForCreate create = WelcomeJourneyForCreate.builder()
                 .withEmail(profile.getEmail())
                 .withStage(WelcomeStage.STARTED)
@@ -194,7 +233,7 @@ public class EntityCreateInterceptor implements OperationCallInterceptor {
     public Object postCall(EOperation operation, Object parameterPayload, Object returnPayload) {
         // Extract input payload
         Payload inputPayload = ((CreateInstanceCall.CreateInstanceCallPayload) parameterPayload).getInput();
-        
+
         // Convert to typed input
         [package.path.to.your.entity].Entity input =
                 [package.path.to.your.entity].Entity.from(inputPayload);
@@ -351,7 +390,7 @@ public class ParentEntityCreateInterceptor implements OperationCallInterceptor {
         // Validate input before operation
         if (!input.getAs(Boolean.class, ParentEntityAttribute.FORM_IS_PRIMARY.getName())) {
             throw ExceptionUtils.createValidationException(
-                ParentEntityAttribute.FORM_IS_PRIMARY.getName(), 
+                ParentEntityAttribute.FORM_IS_PRIMARY.getName(),
                 "Primary flag is required");
         }
 
@@ -461,9 +500,9 @@ public class AccessRoleSetAndRemoveAndDeleteInterceptor implements OperationCall
     @Override
     public Object postCall(EOperation operation, Object parameterPayload, Object returnPayload) {
         // Validate business rule after any permission change
-        Boolean activeEntitiesWithAtLeastManagementPermission = 
+        Boolean activeEntitiesWithAtLeastManagementPermission =
             accessValidationDao.queryActiveEntitiesWithAtLeastManagementPermission().orElse(false);
-        Boolean activeEntitiesWithAtLeastAdminPermission = 
+        Boolean activeEntitiesWithAtLeastAdminPermission =
             accessValidationDao.queryActiveEntitiesWithAtLeastAdminPermission().orElse(false);
 
         if (!(activeEntitiesWithAtLeastManagementPermission && activeEntitiesWithAtLeastAdminPermission)) {
@@ -573,7 +612,7 @@ public class ChildEntityCreateAndUpdateInterceptor implements OperationCallInter
         } else if (parameterPayload instanceof UpdateInstanceCall.UpdateInstanceCallPayload updateInstanceCallPayload) {
             ChildEntity childEntity = childEntityDao.getById(getIdOf(updateInstanceCallPayload.getInstance())).orElseThrow();
             ParentEntity parentEntity = childEntityDao.queryContainer(childEntity, ParentEntityMask.parentEntityMask()).orElseThrow();
-            
+
             if (!childEntity.getManualData()) {
                 locationService.autoUpdateComputedData(childEntity.identifier());
             }

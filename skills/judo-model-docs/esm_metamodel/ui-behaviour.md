@@ -501,4 +501,4 @@ These rules determine attribute availability based on element context and hierar
 
 - [UI Package Reference](./ui.md) - Complete UI element definitions
 - [ESM Structure Package](./structure.md) - Entity and attribute definitions
-- Frontend Mapping (see `judo-frontend-docs` skill) - ESM to React mapping
+- Frontend ESM-to-UI Mapping (see `judo-frontend-docs` skill) - ESM to React mapping

@@ -4,6 +4,13 @@
 
 The frontend uses Material-UI (MUI) theming system for consistent styling. Themes can be customized through palette configuration and applied globally or to specific components.
 
+JUDO theming is **two-layered**:
+
+1. **Actor palette (model-driven)** — the `ActorType` in the ESM model carries 7 color attributes (`primaryColor`, `secondaryColor`, `backgroundColor`, `paperBackgroundColor`, `textPrimaryColor`, `textSecondaryColor`, `subtitleColor`) plus `applicationLogo`. The generator renders these into `src/theme/palette.ts`. **To change the app-wide brand palette, edit the ActorType in the ESM model — not `palette.ts` directly** (editing `palette.ts` requires a `.generator-ignore` entry and loses cross-actor consistency).
+2. **Component sub-themes (frontend)** — `applicationCustomizer.subThemes` maps generated component names to partial MUI themes, applied via a nested `ThemeProvider`. Use this for per-card, per-view, per-table color variations.
+
+For the **authoring side** (ESM mutations to set ActorType colors, plan sub-theme keys via consistent Group naming, and enable data-driven `generateVisualPropertiesHook` / `TableRowHighlightingHook`), see the `judo-model-cli` skill's `ui-mutations.md` — specifically the **Visual Language → Theming & colors** section and **Recipes 18 (sub-theme card colors) and 19 (row highlighting)**.
+
 ## Color Palette
 
 ### Light Theme
@@ -340,7 +347,7 @@ import { useTheme } from '@mui/material/styles';
 
 export const ThemedComponent = () => {
   const theme = useTheme();
-  
+
   return (
     <div style={{ color: theme.palette.primary.main }}>
       Themed content
@@ -387,7 +394,7 @@ export const AdaptiveComponent = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-  
+
   return (
     <div>
       {isMobile && <MobileView />}
@@ -410,13 +417,13 @@ import { Brightness4, Brightness7 } from '@mui/icons-material';
 
 export const ThemeToggle: FC = () => {
   const [darkMode, setDarkMode] = useState(false);
-  
+
   const toggleTheme = () => {
     setDarkMode(!darkMode);
     // Implement theme switching logic
     // This would typically update a context or state management
   };
-  
+
   return (
     <IconButton onClick={toggleTheme} color="inherit">
       {darkMode ? <Brightness7 /> : <Brightness4 />}
@@ -525,7 +532,7 @@ const customGlobalStyles = (
    ```typescript
    // Good
    sx={{ color: 'primary.main' }}
-   
+
    // Bad
    sx={{ color: '#1976d2' }}
    ```

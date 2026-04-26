@@ -50,31 +50,31 @@ import com.google.inject.Injector;
  * This fixture creates all prerequisites in the correct order.
  */
 public class EntityATestFixtures {
-    
+
     private final Injector injector;
-    
+
     // DAOs
     private final EntityBDao entityBDao;
     private final EntityCDao entityCDao;
     private final EntityDDao entityDDao;
     private final EntityEDao entityEDao;
-    
+
     // Created entities
     private EntityB entityB;
     private EntityC entityC;
     private EntityD entityD;
     private EntityE entityE;
-    
+
     public EntityATestFixtures(Injector injector) {
         this.injector = injector;
-        
+
         // Initialize DAOs
         this.entityBDao = injector.getInstance(EntityBDao.class);
         this.entityCDao = injector.getInstance(EntityCDao.class);
         this.entityDDao = injector.getInstance(EntityDDao.class);
         this.entityEDao = injector.getInstance(EntityEDao.class);
     }
-    
+
     /**
      * Creates all prerequisite entities needed for EntityA tests.
      *
@@ -86,41 +86,41 @@ public class EntityATestFixtures {
             .withCode("C001")
             .withName("Test EntityC")
             .build());
-        
+
         // 2. Create EntityB (requires EntityC)
         entityB = entityBDao.create(EntityBForCreate.builder()
             .withCode("B001")
             .withName("Test EntityB")
             .withEntityC(entityC)
             .build());
-        
+
         // 3. Create EntityD (no dependencies)
         entityD = entityDDao.create(EntityDForCreate.builder()
             .withCode("D001")
             .build());
-        
+
         // 4. Create EntityE (no dependencies)
         entityE = entityEDao.create(EntityEForCreate.builder()
             .withName("Test EntityE")
             .build());
-        
+
         return this;
     }
-    
+
     // Getters for all created entities
-    
+
     public EntityB getEntityB() {
         return entityB;
     }
-    
+
     public EntityC getEntityC() {
         return entityC;
     }
-    
+
     public EntityD getEntityD() {
         return entityD;
     }
-    
+
     public EntityE getEntityE() {
         return entityE;
     }
@@ -136,13 +136,13 @@ void testCreateEntityA(JudoTestFixture fixture) {
     // Create all prerequisites with one call
     EntityATestFixtures fixtures = new EntityATestFixtures(fixture.getInjector());
     fixtures.createAllPrerequisites();
-    
+
     // Get custom operation
     CreateEntityACustomImplementation createEntityA = ReferenceInjector.resolve(
         CreateEntityACustomImplementation.class,
         fixture.getInjector()
     );
-    
+
     // Create input using fixture entities (adapt to service layer)
     CreateEntityAInput input = CreateEntityAInput.builder()
         .withName("Test EntityA")
@@ -150,10 +150,10 @@ void testCreateEntityA(JudoTestFixture fixture) {
         .withEntityD(fixtures.getEntityD().adaptTo(ServiceEntityD.class))
         .withEntityE(fixtures.getEntityE().adaptTo(ServiceEntityE.class))
         .build();
-    
+
     // Execute operation
     createEntityA.customCall(input);
-    
+
     // Verify
     EntityADao entityADao = fixture.newInstance(EntityADao.class);
     assertEquals(1, entityADao.query().selectList().size());
@@ -194,7 +194,7 @@ import java.time.LocalDate;
  * Common validation utilities for custom operations.
  */
 public class ValidationUtils {
-    
+
     /**
      * Validates that a string field is not null and not empty.
      *
@@ -207,7 +207,7 @@ public class ValidationUtils {
             throw new IllegalArgumentException(fieldName + " is required");
         }
     }
-    
+
     /**
      * Validates that an object is not null.
      *
@@ -220,7 +220,7 @@ public class ValidationUtils {
             throw new IllegalArgumentException(fieldName + " is required");
         }
     }
-    
+
     /**
      * Validates that end date is after start date.
      *
@@ -233,7 +233,7 @@ public class ValidationUtils {
             throw new IllegalArgumentException("End date must be after start date");
         }
     }
-    
+
     /**
      * Validates numeric range.
      *
@@ -250,7 +250,7 @@ public class ValidationUtils {
             );
         }
     }
-    
+
     /**
      * Validates string length.
      *
@@ -266,7 +266,7 @@ public class ValidationUtils {
             );
         }
     }
-    
+
     /**
      * Validates email format (basic check).
      *
@@ -290,20 +290,20 @@ public void customCall(CreateEntityInput input) {
     ValidationUtils.validateRequired(input.getCode(), "Code");
     ValidationUtils.validateRequired(input.getName(), "Name");
     ValidationUtils.validateNotNull(input.getParent(), "Parent entity");
-    
+
     // Validate string lengths
     ValidationUtils.validateLength(input.getCode(), 50, "Code");
     ValidationUtils.validateLength(input.getName(), 200, "Name");
-    
+
     // Validate optional date range
     if (input.getStartDate() != null && input.getStartDate().isPresent()
         && input.getEndDate() != null && input.getEndDate().isPresent()) {
         ValidationUtils.validateDateRange(
-            input.getStartDate().get(), 
+            input.getStartDate().get(),
             input.getEndDate().get()
         );
     }
-    
+
     // Continue with entity creation...
 }
 ```
@@ -314,17 +314,17 @@ public void customCall(CreateEntityInput input) {
 @Test
 void testValidateRequired() {
     // Valid value - should not throw
-    assertDoesNotThrow(() -> 
+    assertDoesNotThrow(() ->
         ValidationUtils.validateRequired("valid", "Field")
     );
-    
+
     // Null value - should throw
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
         () -> ValidationUtils.validateRequired(null, "Field")
     );
     assertTrue(exception.getMessage().contains("Field is required"));
-    
+
     // Empty value - should throw
     assertThrows(
         IllegalArgumentException.class,
@@ -352,24 +352,24 @@ void testValidateRequired() {
 @Override
 public void run() {
     log.info("Initializing system configuration");
-    
+
     // Check if configuration already exists
     long existingCount = configDao.query()
         .filterByKey(StringFilter.equalTo("system.initialized"))
         .count();
-    
+
     if (existingCount > 0) {
         log.info("System already initialized, skipping");
         return; // Exit early, no error
     }
-    
+
     // Create configuration
     Config config = configDao.create(ConfigForCreate.builder()
         .withKey("system.initialized")
         .withValue("true")
         .withCreatedAt(LocalDateTime.now())
         .build());
-    
+
     log.info("System initialized successfully");
 }
 ```
@@ -383,7 +383,7 @@ public void run() {
     Optional<Config> existing = configDao.query()
         .filterByKey(StringFilter.equalTo("system.initialized"))
         .selectOne();
-    
+
     if (existing.isPresent()) {
         // Update existing
         Config config = existing.get();
@@ -413,21 +413,21 @@ void testIdempotentBehavior(JudoTestFixture fixture) {
         InitSystemCustomImplementation.class,
         fixture.getInjector()
     );
-    
+
     ConfigDao configDao = fixture.newInstance(ConfigDao.class);
-    
+
     // First call - should create
     initSystem.run();
     long countAfterFirst = configDao.countAll();
     assertEquals(1, countAfterFirst, "One config should exist after first call");
-    
+
     // Second call - should not fail or duplicate
     assertDoesNotThrow(() -> initSystem.run(), "Second call should not throw");
-    
+
     // Verify no duplication
     long countAfterSecond = configDao.countAll();
     assertEquals(countAfterFirst, countAfterSecond, "Count should remain the same");
-    
+
     // Third call - still no error
     assertDoesNotThrow(() -> initSystem.run(), "Third call should not throw");
     assertEquals(countAfterFirst, configDao.countAll(), "Count should still be the same");
@@ -457,16 +457,16 @@ public void customCall(CreateCampaignInput input) {
     // Validate required fields
     ValidationUtils.validateRequired(input.getCode(), "Code");
     ValidationUtils.validateRequired(input.getName(), "Name");
-    
+
     // Validate date range if both dates provided
     if (input.getStartDate() != null && input.getStartDate().isPresent()
         && input.getEndDate() != null && input.getEndDate().isPresent()) {
         ValidationUtils.validateDateRange(
-            input.getStartDate().get(), 
+            input.getStartDate().get(),
             input.getEndDate().get()
         );
     }
-    
+
     // Create campaign...
 }
 ```
@@ -479,7 +479,7 @@ public static void validateDateRange(LocalDate startDate, LocalDate endDate, Dat
     if (endDate.isBefore(startDate)) {
         throw new IllegalArgumentException("End date must be after start date");
     }
-    
+
     // Check minimum duration
     if (constraints.hasMinDuration()) {
         long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
@@ -489,7 +489,7 @@ public static void validateDateRange(LocalDate startDate, LocalDate endDate, Dat
             );
         }
     }
-    
+
     // Check maximum duration
     if (constraints.hasMaxDuration()) {
         long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
@@ -499,7 +499,7 @@ public static void validateDateRange(LocalDate startDate, LocalDate endDate, Dat
             );
         }
     }
-    
+
     // Check future-only constraint
     if (constraints.isFutureOnly()) {
         if (startDate.isBefore(LocalDate.now())) {
@@ -519,22 +519,22 @@ void testInvalidDateRangeRejection(JudoTestFixture fixture) {
         CreateCampaignCustomImplementation.class,
         fixture.getInjector()
     );
-    
+
     LocalDate startDate = LocalDate.of(2024, 12, 31);
     LocalDate endDate = LocalDate.of(2024, 1, 1);  // Before start!
-    
+
     CreateCampaignInput input = CreateCampaignInput.builder()
         .withCode("CAMPAIGN2024")
         .withName("Invalid Campaign")
         .withStartDate(startDate)
         .withEndDate(endDate)
         .build();
-    
+
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
         () -> createCampaign.customCall(input)
     );
-    
+
     assertTrue(exception.getMessage().toLowerCase().contains("date"));
 }
 ```
@@ -553,24 +553,24 @@ void testInvalidDateRangeRejection(JudoTestFixture fixture) {
 @Override
 public void customCall(CreateLocationInput input) {
     ValidationUtils.validateRequired(input.getName(), "Name");
-    
+
     // Validate coordinate pair - both or neither
     boolean hasLatitude = input.getLatitude() != null && input.getLatitude().isPresent();
     boolean hasLongitude = input.getLongitude() != null && input.getLongitude().isPresent();
-    
+
     if (hasLatitude || hasLongitude) {
         if (hasLatitude && hasLongitude) {
             // Both provided - validate bounds
             BigDecimal latitude = BigDecimal.valueOf(input.getLatitude().get());
             BigDecimal longitude = BigDecimal.valueOf(input.getLongitude().get());
-            
+
             ValidationUtils.validateRange(latitude, MIN_LATITUDE, MAX_LATITUDE, "Latitude");
             ValidationUtils.validateRange(longitude, MIN_LONGITUDE, MAX_LONGITUDE, "Longitude");
         } else {
             throw new IllegalArgumentException("Both latitude and longitude must be provided");
         }
     }
-    
+
     // Create location...
 }
 ```
@@ -587,7 +587,7 @@ public static void validatePairedFields(
 ) {
     boolean has1 = field1 != null && field1.isPresent();
     boolean has2 = field2 != null && field2.isPresent();
-    
+
     if (has1 != has2) {
         throw new IllegalArgumentException(
             "Both " + field1Name + " and " + field2Name + " must be provided together"
@@ -606,19 +606,19 @@ void testIncompletePairedFieldsRejection(JudoTestFixture fixture) {
         CreateLocationCustomImplementation.class,
         fixture.getInjector()
     );
-    
+
     // Provide only latitude (longitude missing)
     CreateLocationInput input = CreateLocationInput.builder()
         .withName("Test Location")
         .withLatitude(47.5074)
         // Longitude NOT provided
         .build();
-    
+
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
         () -> createLocation.customCall(input)
     );
-    
+
     assertTrue(exception.getMessage().toLowerCase().contains("both"));
 }
 ```
@@ -638,46 +638,46 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class CreateEntityIntegrationTest {
-    
+
     private static final Logger log = LoggerFactory.getLogger(CreateEntityIntegrationTest.class);
-    
+
     @Test
     @JudoTest
     void testSuccessfulCreation(JudoTestFixture fixture) {
         log.info("Testing successful entity creation");
-        
+
         // Test setup
         log.debug("Creating prerequisite entities");
         EntityB entityB = createEntityB();
         log.debug("EntityB created with ID: {}", entityB.identifier());
-        
+
         // Execute operation
         log.info("Executing CreateEntity operation");
         createEntity.customCall(input);
-        
+
         // Verify
         log.debug("Verifying entity was created");
         assertEquals(1, entityDao.countAll());
-        
+
         EntityA created = entityDao.query().selectOne().orElseThrow();
         log.info("Entity created successfully: {} - {}", created.getCode(), created.getName());
     }
-    
+
     @Test
     @JudoTest(transaction = TransactionHandling.AUTO_ROLLBACK)
     void testValidationFailure(JudoTestFixture fixture) {
         log.info("Testing validation failure for missing required field");
-        
+
         CreateEntityInput input = CreateEntityInput.builder()
             // Missing required fields
             .build();
-        
+
         log.debug("Expecting IllegalArgumentException");
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> createEntity.customCall(input)
         );
-        
+
         log.info("Validation correctly rejected: {}", exception.getMessage());
         assertTrue(exception.getMessage().contains("required"));
     }
@@ -696,7 +696,7 @@ class CreateEntityIntegrationTest {
 
     <!-- Your test logging -->
     <logger name="[your.package].[yourmodel].integration" level="DEBUG"/>
-    
+
     <!-- JUDO framework logging -->
     <logger name="hu.blackbelt.judo" level="INFO"/>
 
@@ -731,24 +731,24 @@ class CreateEntityIntegrationTest {
     service = YourOperationInterface.class
 )
 public class YourCustomImplementation implements YourOperationInterface {
-    
+
     @org.osgi.service.component.annotations.Reference
     private hu.blackbelt.judo.dispatcher.api.VariableResolver variableResolver;
-    
+
     @org.osgi.service.component.annotations.Reference
     private UserDao userDao;
-    
+
     @Override
     public void customCall(YourInput input) {
         // Get current user for audit trail
         User currentUser = getCurrentUser();
-        
+
         // Use in entity creation
         EntityForCreate entity = EntityForCreate.builder()
             .withCreatedBy(currentUser)
             .build();
     }
-    
+
     /**
      * Gets the currently authenticated user from VariableResolver.
      *
@@ -796,12 +796,12 @@ public void customCall(CreateUserInput input) {
     // Validate required fields
     ValidationUtils.validateRequired(input.getUserName(), "Username");
     ValidationUtils.validateRequired(input.getEmail(), "Email");
-    
+
     // Check username uniqueness
     long usernameCount = userDao.query()
         .filterByUserName(hu.blackbelt.judo.sdk.query.StringFilter.equalTo(input.getUserName()))
         .count();
-    
+
     if (usernameCount > 0) {
         throw new IllegalStateException("User with username '" + input.getUserName() + "' already exists");
     }
@@ -810,11 +810,11 @@ public void customCall(CreateUserInput input) {
     long emailCount = userDao.query()
         .filterByEmail(hu.blackbelt.judo.sdk.query.StringFilter.equalTo(input.getEmail()))
         .count();
-    
+
     if (emailCount > 0) {
         throw new IllegalStateException("User with email '" + input.getEmail() + "' already exists");
     }
-    
+
     // Create user...
 }
 ```
@@ -826,24 +826,24 @@ public void customCall(CreateUserInput input) {
 @JudoTest
 void testDuplicateUsernameRejection(JudoTestFixture fixture) {
     UserDao userDao = fixture.newInstance(UserDao.class);
-    
+
     // Create first user
     userDao.create(UserForCreate.builder()
         .withUserName("testuser")
         .withEmail("user1@example.com")
         .build());
-    
+
     // Try to create second user with same username but different email
     CreateUserInput input = CreateUserInput.builder()
         .withUserName("testuser")  // Duplicate username
         .withEmail("user2@example.com")  // Different email
         .build();
-    
+
     IllegalStateException exception = assertThrows(
         IllegalStateException.class,
         () -> createUser.customCall(input)
     );
-    
+
     assertTrue(exception.getMessage().contains("username"));
     assertTrue(exception.getMessage().contains("testuser"));
 }
@@ -871,7 +871,7 @@ public void customCall(CreateUserInput input) {
     if (!hasRole) {
         throw new IllegalArgumentException("User must have at least one role assigned");
     }
-    
+
     // Create user...
 }
 ```
@@ -888,7 +888,7 @@ public void customCall(CreateUserInput input) {
 public static void validateAtLeastOneTrue(Boolean[] flags, String errorMessage) {
     boolean hasTrue = Arrays.stream(flags)
         .anyMatch(flag -> Boolean.TRUE.equals(flag));
-    
+
     if (!hasTrue) {
         throw new IllegalArgumentException(errorMessage);
     }
@@ -983,7 +983,7 @@ public class ValidationUtils {
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
     );
-    
+
     public static void validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("Email is required");

@@ -105,18 +105,6 @@ Configuration for different environments:
 - `judo-karaf.env` file
 - Security and database settings
 
-### [Schema Evolution](./schema-evolution.md)
-Database schema management:
-- Liquibase changelog generation
-- Migration strategies
-- Schema versioning
-
-### [Tooling Guide](./tooling-guide.md)
-Development tooling and utilities:
-- Build tool configuration
-- IDE setup
-- Debugging tools
-
 ## Build System Architecture
 
 ### Components

@@ -428,7 +428,7 @@ public class CreateComplexEntityTest {
                 .build());
 
         // 3. Instantiate custom operation with dependency injection
-        CreateComplexEntityCustomImplementation createOperation = 
+        CreateComplexEntityCustomImplementation createOperation =
             ReferenceInjector.resolve(
                 CreateComplexEntityCustomImplementation.class,
                 fixture.getInjector()

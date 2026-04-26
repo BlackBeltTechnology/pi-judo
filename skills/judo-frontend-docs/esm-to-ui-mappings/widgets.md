@@ -1,6 +1,6 @@
 # ESM to UI Mapping: Widget Components
 
-**[◄ Overview](./SKILL.md)** | **[Tables & Navigation ►](./tables-navigation.md)**
+**[◄ Overview](../SKILL.md)** | **[Tables & Navigation ►](./tables-navigation.md)**
 
 This document covers widget components that display and edit data within containers.
 
@@ -360,4 +360,3 @@ Container for grouping related actions/buttons with automatic overflow handling.
   <actions xsi:type="ui:PerformableAction" name="export" label="Export"/>
 </actionGroup>
 ```
-

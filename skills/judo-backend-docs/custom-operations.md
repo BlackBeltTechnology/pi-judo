@@ -116,9 +116,52 @@ graph LR
 
 | File Type | Location | Regenerated? | Purpose |
 |-----------|----------|--------------|---------|
-| `.default` files | `application/app/src/main/java/.generated-files/` | YES | Reference/template |
+| `.default` files | `application/app/src/main/java/.generated-files/<generator-package>/custom/` | YES | Reference/template |
 | Generated interfaces | `application/app/src/main/java/.generated-files/` | YES | Contract definition |
-| Custom implementations | `application/app/src/main/java/[package]/operations/` | NO | Your customizations |
+| Custom implementations | `application/app/src/main/java/<generator-package>/custom/` | NO | Your customizations |
+
+### Generator-Emitted Package Convention
+
+> [!IMPORTANT]
+> **Custom ops live in the generator's package, not a package you invent.**
+
+The generator emits both the `.default` blueprint and the expected custom-impl location under a **fixed, model-derived package** of the form:
+
+```
+<generated-root-package>.northwind.custom
+```
+
+For this project that resolves to a path like:
+
+```
+application/app/src/main/java/<generated-root-package>/northwind/custom/
+  ├── CreateUserOperation.java.default        ← generated, read-only
+  └── CreateUserOperation.java                ← your custom impl (same package!)
+```
+
+**Concrete example (real project):** `hu.blackbelt.compsych.letter.compsychletter.custom/` — derived from the root package `hu.blackbelt.compsych.letter` plus the lower-cased model name `compsychletter` plus the fixed `.custom` suffix.
+
+> [!WARNING]
+> **Generator checksum gotcha — `.generated-files` can be wiped.**
+>
+> The build's `resetChecksum` goal periodically clears `application/app/src/main/java/.generated-files/`. After that the `.default` blueprints and the checksum registry are gone until the next full generator run — which can break incremental builds and make your `.generator-ignore` entries look orphaned.
+>
+> **Recovery**: restore from VCS rather than forcing a full regenerate:
+>
+> ```bash
+> git checkout -- application/app/src/main/java/.generated-files
+> ```
+>
+> This is the fastest way back to a consistent state. Only run the full generator if the ESM model actually changed.
+
+**Do NOT:**
+- ❌ Place custom impls in an invented package such as `com.<yourorg>.operations` or `<root>.operations` — the OSGi wiring and `@Component` discovery are keyed off the generator package.
+- ❌ Keep a stale `operations/` package from an earlier design sketch; rename to `.custom/` to match the emitted `.default`.
+
+**Do:**
+- ✅ Put your `.java` file in the **same package as its `.default` twin**.
+- ✅ Add the `.default` path (at its real generator-emitted location) to the root `.generator-ignore`.
+- ✅ When in doubt, run `find application/app/src/main/java -name '*.java.default'` and mirror those packages.
 
 ### Best Practices
 

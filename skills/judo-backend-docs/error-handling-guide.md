@@ -116,11 +116,33 @@ public class TogglePrimaryCustomImplementation implements TogglePrimary {
 
 | Exception Type | When to Use | HTTP Status | Client-Side Effect |
 | :--- | :--- | :--- | :--- |
-| `ValidationException` | For input validation failures on specific fields. | 400 | Field-level error messages are displayed. |
+| `ValidationException` | For input validation failures on specific fields, **and** for business-semantic failures carried via machine-code prefixes (see note below). | 400 | Field-level error messages are displayed. |
 | `BusinessErrorException` | For modeled, type-safe business rule violations. | 422 | Can be caught by type for specific error handling. |
-| `GenericOperationErrorException` (`BusinessException`) | For general business rule violations not tied to a specific field. | 500 | A general error notification is shown to the user. |
+| `GenericOperationErrorException` | For general business rule violations not tied to a specific field. | 500 | A general error notification is shown to the user. |
 | `NotFoundException` | When a required entity cannot be found in the database. | 404 | Standard "Not Found" handling. |
 | `AccessDeniedException` | For permission or authorization failures. | 403 | Standard "Forbidden" handling. |
+
+> [!IMPORTANT]
+> **There is no `BusinessException` class in `runtime-core`.**
+>
+> Older docs and code comments sometimes refer to a `BusinessException` type — it does not exist as a Java class in the current JUDO runtime. The concrete type for generic business failures is **`GenericOperationErrorException`**, and `ExceptionUtils.createBusinessException(...)` is the factory that produces it.
+>
+> **Convention for business-semantic failures**: the idiomatic pattern is to throw a `ValidationException` whose `ValidationResult` entries carry a **machine-code prefix** in the code/message (e.g. `ERR_USER_INACTIVE`, `ERR_QUOTA_EXCEEDED`). Clients branch on the prefix; the 400 status and field-level rendering are a feature, not a bug, because the business cause is tied to an input or an addressable path.
+
+> [!WARNING]
+> **`NotFoundException` and `AccessDeniedException` require a `ValidationResult` constructor.**
+>
+> The current runtime-core does **not** provide a no-arg constructor on these exceptions. You must instantiate them with a `ValidationResult` (or collection thereof):
+>
+> ```java
+> throw new NotFoundException(ExceptionUtils.createValidationResult(
+>     "id", i18n.entity_not_found()));
+>
+> throw new AccessDeniedException(ExceptionUtils.createValidationResult(
+>     "principal", i18n.access_denied()));
+> ```
+>
+> `new NotFoundException()` / `new AccessDeniedException()` will not compile. Prefer `ExceptionUtils.createValidationResult(field, message)` so the message is localizable and the field path renders correctly client-side.
 
 ---
 
@@ -183,18 +205,18 @@ class TogglePrimaryCustomImplementationTest {
         // Arrange
         EntityContact contact = new EntityContact();
         contact.setIdentifier(UUID.randomUUID());
-        
+
         when(entityContactDao.getById(any())).thenReturn(Optional.of(contact));
         when(parentEntityDao.queryPrimaryContact(any())).thenReturn(Optional.of(contact));
         when(i18n.primary_contact_change_failed()).thenReturn("Primary Change Failed");
         when(i18n.primary_contact_is_required()).thenReturn("Primary contact is required");
-        
+
         // Act & Assert
         GenericOperationErrorException exception = assertThrows(
             GenericOperationErrorException.class,
             () -> implementation.accept(contact)
         );
-        
+
         assertThat(exception.getMessage()).contains("Primary contact is required");
     }
 }

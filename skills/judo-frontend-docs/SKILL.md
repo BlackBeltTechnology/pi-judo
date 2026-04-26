@@ -372,17 +372,13 @@ export interface {{pascalCase entity.name}} {
 
 ## Related Documentation
 
+**Authoring vs customizing.** This skill covers **customizing the generated React frontend** (hooks, theming, i18n, overrides). The UI layout itself — Form / Table / View scaffolds on each `TransferObjectType`, the menu on each `ActorType` — is **authored in the ESM model**. For that, see the model skill's UI Authoring Guide (see `judo-model-docs` skill).
+
 ### Core Topics
 - [Development Workflow](./development-workflow.md) - Dev server, build, testing
 - [Theming](./theming.md) - MUI theme customization
 - [Internationalization](./i18n.md) - i18n setup and translations
 - [Advanced Patterns](./advanced-patterns.md) - Production patterns for complex requirements
-
-### Model-to-UI Mapping
-- [Model Screen Layout](./model-screen-layout.md) - Understanding how model elements map to screen layouts
-- [ESM to UI Mapping Overview](./esm-to-ui-mappings/SKILL.md) - How ESM source elements map to UI model elements
-- [Widgets Mapping](./esm-to-ui-mappings/widgets.md) - Widget-level ESM to UI mappings
-- [Tables & Navigation Mapping](./esm-to-ui-mappings/tables-navigation.md) - Table and navigation ESM to UI mappings
 
 ### Hook System
 - [Hook System Overview](./hooks/SKILL.md) - Understanding the hook system

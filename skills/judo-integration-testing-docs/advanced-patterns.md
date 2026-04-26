@@ -277,9 +277,9 @@ public class VariableResolverMockHelper {
      * @param userName The username/identifier for the test user
      * @return The created user entity
      */
-    public static [your.package].[yourmodel].api.[yourmodel]._default_transferobjecttypes.entity.user.User 
+    public static [your.package].[yourmodel].api.[yourmodel]._default_transferobjecttypes.entity.user.User
             createTestUser(
-                [your.package].[yourmodel].api.[yourmodel]._default_transferobjecttypes.entity.user.UserDao userDao, 
+                [your.package].[yourmodel].api.[yourmodel]._default_transferobjecttypes.entity.user.UserDao userDao,
                 String userName) {
         return userDao.create(
             [your.package].[yourmodel].api.[yourmodel]._default_transferobjecttypes.entity.user.UserForCreate.builder()
@@ -699,7 +699,7 @@ void testNullReference(JudoTestFixture fixture) {
 @JudoTest
 void testDeletedReference(JudoTestFixture fixture) {
     SettlementDao settlementDao = fixture.newInstance(SettlementDao.class);
-    
+
     // Create and delete
     Settlement settlement = settlementDao.create(SettlementForCreate.builder()
         .withName("Test")

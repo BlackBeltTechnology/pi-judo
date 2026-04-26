@@ -857,4 +857,4 @@ navigate(path);
 - [Hook System Overview](./SKILL.md)
 - [Data Hooks](./data-hooks.md)
 - [Action Hooks](./action-hooks.md)
-- Development Workflow (see `judo-development-workflow.md-docs` skill)
+- [Development Workflow](../development-workflow.md)

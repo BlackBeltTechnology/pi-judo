@@ -750,4 +750,4 @@ throw new Error('Error message');
 - [Hook System Overview](./SKILL.md)
 - [Action Hooks](./action-hooks.md)
 - [Data Hooks](./data-hooks.md)
-- Development Workflow (see `judo-development-workflow.md-docs` skill)
+- [Development Workflow](../development-workflow.md)

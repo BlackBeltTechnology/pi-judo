@@ -25,6 +25,23 @@
 
 ---
 
+## ⚠️ CRITICAL: `./judo.sh prune -f` Deletes Uncommitted Frontend Customizations
+
+`./judo.sh prune -f` runs `git clean` against `application/frontend-react/` and **permanently deletes every file that is not tracked by git** in that subtree. There is no undo.
+
+This is the exact directory where your custom code lives: Pandino hooks, theme overrides, custom components, and i18n overrides (e.g. under `frontend-react/<app>/src/custom/**`, `.../theme/**`, `.../i18n/**`). If any of those files are new and not yet committed, `prune -f` will erase them.
+
+**Before running `./judo.sh prune -f` (or `prune -y`):**
+
+1. `git status` — verify every custom hook/theme/i18n/component file is either committed or staged, or deliberately disposable.
+2. `git stash -u` to snapshot untracked work you want to keep.
+3. Never run `./judo.sh prune -y` (auto-confirm) in an agent workflow without a verified clean working tree — treat it as equivalent to `rm -rf` on customer code.
+4. If you only need to clear generator caches, use `./judo.sh clean` instead — `clean` does not delete untracked source files.
+
+See Prune (Destructive) (see `judo-deployment-docs` skill) for the full reference.
+
+---
+
 ## Local Development Setup
 
 ### Correct Directory for pnpm Commands

@@ -1,6 +1,6 @@
 # `structure` Package Reference
 
-**[◄ Back to Index](./SKILL.md)**
+**[◄ Back to Index](../SKILL.md)**
 
 The `structure` package is the core of the ESM, defining the business entities, their data structures, and how they relate to one another. This package represents the "nouns" of the application domain.
 
@@ -29,6 +29,9 @@ Represents a core, persistent business object with its own lifecycle and identit
 | `abstract` | Boolean | `[1]` | If `true`, this entity cannot be instantiated directly and must be subclassed. |
 | `constraints` | `InvariantConstraint` | `[0..*]` | A list of business rules that must always hold true for this entity. |
 | `sequences` | `EntitySequence` | `[0..*]` | Defines any database sequences associated with this entity. |
+| `mapping` | `Mapping` | `[1]` | **Mandatory self-reference** — must point back to the owning `EntityType` itself (`target=<own xmi:id>`). EVL rejects an `EntityType` without it. See note below. |
+
+**Mandatory self-mapping on `EntityType`.** Every `EntityType` must carry a `<mapping target="<own xmi:id>"/>` child (`target` = the entity's own id). EVL rejects an entity without it (`EntityTypeHasSelfMapping`); removing these because they look redundant produces a cascade of validation errors. This is distinct from a `TransferObjectType`'s `mapping`, which projects the TO from an entity and carries the optional `filter`.
 
 ### `TransferObjectType`
 A Data Transfer Object (DTO) used as a data structure for service operations or UI components. It acts as a "view" or "projection" of an `EntityType` and is the primary vehicle for data exchange.

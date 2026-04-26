@@ -132,7 +132,7 @@ public class OperationNameCustomImplementation implements OperationInterface {
 @Component(property = { "judo.model.name=northwind" })
 public class EntityCreateInterceptor implements OperationCallInterceptor {
     @Reference EntityDao entityDao;
-    
+
     @Override
     public Collection<EOperation> getOperations(AsmModel asmModel) {
         return Stream.of(

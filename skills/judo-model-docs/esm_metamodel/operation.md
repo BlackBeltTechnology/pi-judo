@@ -1,6 +1,6 @@
 # `operation` Package Reference
 
-**[◄ Back to Index](./SKILL.md)**
+**[◄ Back to Index](../SKILL.md)**
 
 This package defines the services and methods that encapsulate the application's business logic. It represents the "verbs" of the model, specifying the actions that can be performed on or with the data structures defined in the `structure` package.
 

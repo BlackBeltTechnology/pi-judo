@@ -22,20 +22,14 @@ For model design specifications (entities, attributes, relations, operations), s
 
 ## Reference Documentation
 
+- **[JUDO Model CLI](judo-cli.md)**: The `judo-cli.jar` platform tool — the only sanctioned way to read or change the ESM. **Read this first if you have not used the CLI before.**
+- **[Transformation Pipeline](transformation-pipeline.md)**: ESM → PSM → ASM → RDBMS → Liquibase, server-side vs client-side regeneration, and the in-memory state model.
 - **[Model Development Guide](model-development.md)**: Modeling workflow, naming conventions, and **JQL expression language reference**.
+- **[UI Authoring Guide](ui-authoring-guide.md)**: How to compose `<form>`, `<table>`, `<view>` scaffolds on `TransferObjectType`s and wire them onto an `ActorType` menu. **Read this before authoring UI elements.**
 - **[Advanced Modeling Patterns](advanced-modeling-patterns.md)**: Reusable design patterns for common modeling problems.
 - **[Generalization Guide](generalization-guide.md)**: Entity inheritance and generalization patterns.
 - **[XMI ID Traceability](xmi-id-traceability.md)**: How JUDO maintains traceability from model elements to generated artifacts.
 - **[ESM Metamodel](./esm_metamodel/SKILL.md)**: Detailed breakdown of every component in `esm.ecore`.
-  - [Namespace Package](./esm_metamodel/namespace.md) - Model organization, naming, structure
-  - [Type Package](./esm_metamodel/type.md) - Logical data types (StringType, NumericType, etc.)
-  - [Structure Package](./esm_metamodel/structure.md) - Entities, attributes, relationships
-  - [Operation Package](./esm_metamodel/operation.md) - Service definitions, methods, parameters
-  - [Accesspoint Package](./esm_metamodel/accesspoint.md) - Security model, actors, permissions
-  - [UI Package](./esm_metamodel/ui.md) - User interface definitions
-  - [UI Behaviour](./esm_metamodel/ui-behaviour.md) - Conditional behaviour rules
-  - [UI Visual Style Guide](./esm_metamodel/ui-visual-styleguide.md) - Visual styling rules
-  - [Other Packages](./esm_metamodel/other.md) - Measure, expression, script packages
 
 ## Quick Reference
 

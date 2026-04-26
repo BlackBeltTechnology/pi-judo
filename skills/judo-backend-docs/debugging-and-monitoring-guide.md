@@ -60,7 +60,7 @@ public class CustomOperation implements operation.demo.CustomOperation {
     public void apply(InputParameter inputParameter) {
         log.info("Custom operation called with input: {}", inputParameter);
         log.debug("Detailed input: {}", inputParameter.getDetails());
-        
+
         try {
             // ... operation logic ...
         } catch (Exception e) {

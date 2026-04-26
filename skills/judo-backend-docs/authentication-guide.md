@@ -46,11 +46,56 @@ When a user authenticates, their JWT token contains claims that are passed to th
 - `family_name` - Last name
 - `sub` - The subject identifier (a unique user ID from the IdP)
 
+> [!NOTE]
+> **Accessing these claims from JQL**
+>
+> The same claims are reachable from JQL expressions (access filters, derived features, custom-op preconditions) via `!getVariable(category, 'claim_name')`. The correct category depends on the actor shape:
+>
+> - Actors with **`claimPrincipal: true`** → use **`USER.*`** (raw JWT).
+> - Unmapped principal TO, not `claimPrincipal` → use **`PRINCIPAL.*`**.
+> - Mapped principal TO (persisted actor entity) → use **`ACTOR.*`** for persisted attributes, **`USER.*`** for raw claims.
+>
+> See ACTOR vs PRINCIPAL vs USER (see `judo-model-docs` skill) for the full decision matrix and the silent-failure pitfall.
+
 ---
 
 ## Example: Just-in-Time User Provisioning
 
-This is the most common use case for an `AuthenticationInterceptor`. The following example demonstrates how to create a user in the local application database on their first login.
+> [!IMPORTANT]
+> **Model-driven provisioning comes first — check the actor shape before writing an interceptor.**
+>
+> If the `ActorType` in your ESM is **mapped + `managed="true"` + has `<claims>`** (see Mapped Managed Principal with Claim Mapping (see `judo-model-docs` skill)), the JUDO runtime is *intended* to insert the principal row on first login and update it on every subsequent `#_principal` call, directly from the JWT claims declared in `<claims>`. In that intended case you do not need an `AuthenticationInterceptor` for the baseline insert.
+>
+> Use a custom `AuthenticationInterceptor` only when you need behaviour **beyond** what `<claims>` can express:
+> -  Copying a non-standard JWT claim to a plain entity attribute (the `<claims>` element only covers `EMAIL` and `USERNAME`).
+> -  Initialising roles or permission flags from a `groups` / `realm_access.roles` claim.
+> -  Writing an audit row, emitting a domain event, or calling an external system on first login.
+> -  Coping with legacy actors that are **not** mapped + managed (e.g. an unmapped principal TO, or `claimPrincipal: true`), where the runtime does no persistence of its own.
+>
+> When both are in play, the interceptor runs **before** the framework's actor lookup on the same `#_principal` call (per the [AuthenticationInterceptor contract](./interceptors.md) — *"after the extraction of principal but before the load of the mapped principal load"*), so it can safely insert/update the row that the lookup is about to read.
+
+> [!WARNING]
+> **Verified runtime behaviour (judo-runtime-core-dispatcher 1.0.6.20241030 / 1.0.6.20251205): the auto-insert does NOT happen.**
+>
+> `DefaultActorResolver.getActorByClaims` only calls `dao.search(actorType, …)` on the principal entity and, when the result is empty, throws:
+>
+> ```
+> hu.blackbelt.judo.runtime.core.exception.AccessDeniedException
+>   ValidationResult.code = "AUTHENTICATED_ENTITY_NOT_FOUND"
+>   at DefaultActorResolver.getActorByClaims(DefaultActorResolver.java:~205)
+>   at DefaultActorResolver.authenticateByPrincipal
+>   at DefaultActorResolver.authenticateActor
+>   at DefaultDispatcher.callOperation
+>   at <YourActor>Impl._principal
+> ```
+>
+> No row insertion code path exists in the dispatcher source for `managed=true` actors as of these versions. The `INFO` log line `"Operation failed, authenticated entity not found in database"` (visible on every first-login attempt) is the giveaway.
+>
+> **Until a runtime release ships the documented auto-insert, you MUST provide an `AuthenticationInterceptor` that performs the first-login insert yourself**, even for the textbook *mapped + managed + `<claims>`* case. The example below is exactly that interceptor; it is required, not optional. The `synchronized` block in the example is one defence against the concurrent-first-login race; an alternative is to skip the lock and let the unique-constraint violation surface as a `RuntimeException` that you log and swallow (the loser's request still benefits from the winner's row on the upcoming framework lookup).
+>
+> If a future runtime version actually implements the auto-insert, the interceptor's pre-query check (`if (existingUser.isPresent()) return;`) makes it a safe no-op — keep it in place rather than removing it.
+
+The following example demonstrates how to create a user in the local application database on their first login — appropriate when the actor is **not** using the mapped + managed shape, or when extra fields must be populated beyond the declared `<claims>`.
 
 ```java
 @Component(property = {"judo.model.name=MyApp"})
@@ -100,7 +145,7 @@ public class AutoUserCreationAuthenticationInterceptor implements Authentication
             log.info("Auto-provisioning new user: email={}", email);
             try {
                 String username = (String) attributes.getOrDefault("preferred_username", email.split("@")[0]);
-                
+
                 UserForCreate newUser = UserForCreate.builder()
                         .withUserName(ensureUniqueUsername(username))
                         .withEmail(email)

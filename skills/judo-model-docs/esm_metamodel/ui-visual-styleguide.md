@@ -1,6 +1,6 @@
 # UI Visual Style Guide
 
-**[◄ Back to Index](./SKILL.md)**
+**[◄ Back to Index](../SKILL.md)**
 
 This document defines the visual style indicators and styling rules used throughout the ESM metamodel. These rules determine how elements are visually represented in both the designer and the generated frontend.
 

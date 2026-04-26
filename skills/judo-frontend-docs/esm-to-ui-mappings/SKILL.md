@@ -1,6 +1,6 @@
 # ESM to UI Mapping: Overview
 
-**◄ Frontend (see `judo-README.md-docs` skill)** | **[Widgets ►](./widgets.md)**
+**[◄ Frontend](../SKILL.md)** | **[Widgets ►](./widgets.md)**
 
 This document covers the foundational mappings from ESM source elements to UI model elements.
 

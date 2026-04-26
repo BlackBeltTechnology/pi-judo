@@ -73,14 +73,14 @@ void testMultiStepWorkflow(JudoTestFixture fixture) {
 
 ```java
 public class AddressTestFixtures {
-    
+
     public static Settlement createTestSettlement(SettlementDao settlementDao) {
         return settlementDao.create(SettlementForCreate.builder()
             .withName("Test Settlement")
             .withZipCode(1234)
             .build());
     }
-    
+
     public static Address createTestAddress(AddressDao addressDao, Settlement settlement) {
         return addressDao.create(AddressForCreate.builder()
             .withPostalCode("1234")
@@ -100,11 +100,11 @@ public class AddressTestFixtures {
 void testCreatePollingStation(JudoTestFixture fixture) {
     SettlementDao settlementDao = fixture.newInstance(SettlementDao.class);
     AddressDao addressDao = fixture.newInstance(AddressDao.class);
-    
+
     // Use fixtures for clean, readable tests
     Settlement settlement = AddressTestFixtures.createTestSettlement(settlementDao);
     Address address = AddressTestFixtures.createTestAddress(addressDao, settlement);
-    
+
     // Rest of test...
 }
 ```
@@ -118,19 +118,19 @@ void testCreatePollingStation(JudoTestFixture fixture) {
 @JudoTest
 void testCreateAddress(JudoTestFixture fixture) {
     // ... create address ...
-    
+
     // ✅ Verify entity was created
     assertEquals(1, addressDao.query().selectList().size());
-    
+
     // ✅ Verify correct data
     Address created = addressDao.query().selectOne().orElseThrow();
     assertEquals("1234", created.getPostalCode());
     assertEquals("Test Street", created.getStreetName().orElse(null));
-    
+
     // ✅ Verify relationships
     assertTrue(created.getSettlement() != null);
     assertEquals(settlement.identifier(), created.getSettlement().identifier());
-    
+
     // ❌ Don't test framework behavior
     // assertNotNull(created.identifier());  // Framework always sets this
 }
@@ -150,10 +150,10 @@ void testCreateAddress(JudoTestFixture fixture) {
 
     <!-- Project logging -->
     <logger name="[your.package].[yourmodel]" level="DEBUG"/>
-    
+
     <!-- JUDO framework logging -->
     <logger name="hu.blackbelt.judo" level="INFO"/>
-    
+
     <!-- SQL logging (enable when debugging queries) -->
     <logger name="org.hibernate.SQL" level="DEBUG"/>
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
@@ -206,15 +206,15 @@ boolean exists = addressDao.getById(addressId, AddressMask.addressMask()).isPres
 
 ```java
 public abstract class BaseIntegrationTest {
-    
+
     protected <T> T getInstance(JudoTestFixture fixture, Class<T> clazz) {
         return fixture.newInstance(clazz);
     }
-    
+
     protected void assertEntityExists(Object dao, Object identifier) {
         // Common assertion logic
     }
-    
+
     protected void assertFieldEquals(String expected, String actual, String fieldName) {
         assertEquals(expected, actual, fieldName + " should match");
     }
@@ -275,9 +275,9 @@ public abstract class BaseIntegrationTest {
      * Helper method to create a test FaultRegistry
      * Note: Requires multiple prerequisites (Address, User)
      */
-    protected FaultRegistry createTestFaultRegistry(JudoRuntimeFixture fixture, 
-                                                   Address facility, 
-                                                   User assignedTo, 
+    protected FaultRegistry createTestFaultRegistry(JudoRuntimeFixture fixture,
+                                                   Address facility,
+                                                   User assignedTo,
                                                    String registryNumber) {
         FaultRegistryDao faultRegistryDao = fixture.getInjector().getInstance(FaultRegistryDao.class);
         return faultRegistryDao.create(FaultRegistryForCreate.builder()
@@ -294,7 +294,7 @@ public abstract class BaseIntegrationTest {
 
 ```java
 class FaultRegistryBasicTest extends BaseIntegrationTest {
-    
+
     @Test
     @JudoTest(
         modelName = "rackinspect",
@@ -309,11 +309,11 @@ class FaultRegistryBasicTest extends BaseIntegrationTest {
         Country country = createTestCountry(fixture);
         Address facility = createTestAddress(fixture, country);
         User assignedTo = createTestUser(fixture);
-        
+
         FaultRegistry registry = createTestFaultRegistry(
             fixture, facility, assignedTo, "REG-001"
         );
-        
+
         assertNotNull(registry);
         assertEquals("REG-001", registry.getRegistryNumber());
         assertEquals(facility.identifier(), registry.getFacility().identifier());
@@ -486,7 +486,7 @@ assertTrue(currency.getName().isPresent(), "Currency name should be present");
 assertEquals("Hungarian Forint", currency.getName().get());
 
 // ✅ CORRECT - Safe logging with Optional
-log.info("Created Currency: {} ({})", 
+log.info("Created Currency: {} ({})",
     currency.getName().orElse("N/A"),  // Safe default
     currency.getCode());
 ```
@@ -642,7 +642,7 @@ public void customCall(CreateAddressInput input) {
     }
 
     // 2. Validate references exist (with empty masks for performance)
-    if (!settlementDao.getById(input.getSettlement().identifier(), 
+    if (!settlementDao.getById(input.getSettlement().identifier(),
             SettlementMask.settlementMask()).isPresent()) {
         throw new IllegalArgumentException("Settlement not found");
     }
@@ -722,26 +722,26 @@ void testCreateAddress(JudoTestFixture fixture) {
     // ARRANGE - Set up test data
     SettlementDao settlementDao = fixture.newInstance(SettlementDao.class);
     AddressDao addressDao = fixture.newInstance(AddressDao.class);
-    
+
     Settlement settlement = settlementDao.create(SettlementForCreate.builder()
         .withName("Test Settlement")
         .build());
-    
+
     CreateAddressCustomImplementation createAddress = ReferenceInjector.resolve(
         CreateAddressCustomImplementation.class,
         fixture.getInjector()
     );
-    
+
     CreateAddressInput input = CreateAddressInput.builder()
         .withPostalCode("1234")
         .withSettlement(settlement.adaptTo(
             [your.package].[yourmodel].api.[yourmodel].service.settlement.Settlement.class
         ))
         .build();
-    
+
     // ACT - Execute the operation
     createAddress.customCall(input);
-    
+
     // ASSERT - Verify the results
     assertEquals(1, addressDao.query().selectList().size());
     Address created = addressDao.query().selectOne().orElseThrow();

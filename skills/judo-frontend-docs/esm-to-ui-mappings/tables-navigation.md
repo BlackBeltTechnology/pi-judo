@@ -1,6 +1,6 @@
 # ESM to UI Mapping: Tables & Navigation
 
-**[◄ Widgets](./widgets.md)** | **[Overview](./SKILL.md)**
+**[◄ Widgets](./widgets.md)** | **[Overview](../SKILL.md)**
 
 This document covers table elements, navigation, transformation tracing, and advanced topics.
 
@@ -174,6 +174,13 @@ A column within a table displaying a relation (link to related entity).
   attributePath="name"
   width="200"/>
 ```
+
+**When not to use `RelationColumn`.** Avoid `RelationColumn` on **top-level** `TransferObjectTable`s — the tables that back an `Access` / `MenuItemAccess` and render as a primary list screen. At this level `RelationColumn` triggers a **frontend codegen bug**: the generated list screen references a non-existent sibling (observed symptom: dangling `View<RelatedType>Stored`-style refs, e.g. `ViewGalaxyStored`), and sorting / filtering / row-action wiring on relation-typed columns is unreliable. Instead:
+
+1. **Prefer `TabularReferenceField`** in the owning `<view>` or `<form>` when the user needs to navigate or manage the related collection — this is the canonical widget for relation display inside a detail screen.
+2. **Prefer a plain `DataColumn`** bound to a mapped `DataMember` (either a bound string attribute or a `DERIVED` attribute whose `getterExpression` flattens the related value, e.g. `self.owner.fullName`) when you only need to *display* a label from the related entity in the list.
+
+Reserve `RelationColumn` for embedded relation tables inside detail screens where relation-navigation semantics are explicitly expected. See also UI Authoring Guide — Pitfalls (see `judo-model-docs` skill).
 
 ---
 
@@ -472,6 +479,5 @@ See UI Element Behaviour Rules (see `judo-model-docs` skill) for complete condit
 
 - UI Element Behaviour Rules (see `judo-model-docs` skill) - Conditional attribute rules and validation
 - ESM UI Package Reference (see `judo-model-docs` skill) - Complete UI element definitions
-- Transformation Pipeline (see `judo-model-docs` skill) - Model transformation flow
-- ESM Concepts (see `judo-model-docs` skill) - ESM metamodel concepts
+- UI Authoring Guide (see `judo-model-docs` skill) - Authoring playbook for ESM UI scaffolds
 - Use `judo-model-cli` skill for model queries and tracing

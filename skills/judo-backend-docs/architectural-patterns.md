@@ -54,6 +54,33 @@ Consider a scenario where a user can only access `MyEntity` records that belong 
 -   `e | e.tenant == ...`: This is the filter predicate. It dictates that the `tenant` relationship of an entity must match the context value.
 -   `...getVariable('REQUEST', 'tenantId')`: This is the key to the pattern. The framework invokes this function, which securely retrieves the `tenantId` value from the `REQUEST` context (which was populated from the HTTP header). The query is then filtered based on this value.
 
+### Rules for `accesses[*].getterExpression`
+
+Access getters on an `ActorType` are strict; violating any rule below yields an obscure JQL-parser or ASM-validator error. All four rules apply together.
+
+1. **The filter base must be the entity FQN**, not the TO:
+
+    ```text
+    <model>::entities::<Entity>!filter(x | …)      // ✅ ASM-valid
+    <model>::services::<TO>!filter(x | …)          // ❌ ReferenceExpressionMatchesBinding
+    ```
+
+    The generator projects from the entity to the target TO automatically.
+
+2. **`self` is not in scope.** The actor has no `self`; always iterate from the entity with a lambda variable.
+
+3. **`accessType="DERIVED"` requires a reference-returning expression.** A boolean literal (`getterExpression="true"`) is rejected by `ReferenceBindingExpressionIsValid`. For an unrestricted "see everything" access, drop the getter and set `accessType="ALL"`.
+
+4. **`!getVariable(...)` returns a scalar `String` only.** Compare with `==`, not `!memberOf(...)`:
+
+    ```text
+    e.<path> == <model>::types::String!getVariable('PRINCIPAL', 'partner_code')
+    ```
+
+    Primitives must be fully qualified; bare `String!getVariable(...)` fails with `Unknown symbol: String`. Multi-value claims (`Sequence<String>!getVariable(...)` does not exist in the grammar) must be consumed via a backend interceptor — see `interceptors.md` → "Backend-computed TO attribute".
+
+When one of these rules blocks the filter you need — bipartite quantifiers, multi-value claims, external lookups — reach for the **`TRANSIENT` TO attribute + `OperationCallInterceptor`** pattern. See [Interceptors Guide](./interceptors.md), *Backend-Computed TO Attribute (JQL Escape Hatch)*.
+
 ## Connecting to Frontend Patterns
 
 This backend pattern works in concert with frontend patterns to form the complete solution. For details on how the frontend provides the necessary context, see Advanced Patterns (see `judo-frontend-docs` skill):

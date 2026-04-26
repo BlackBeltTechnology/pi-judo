@@ -48,7 +48,17 @@ Backend development in northwind involves implementing custom business logic in 
 
 **When You Must Edit Generated Files:**
 
-Sometimes there's no hook available for customization, and you must edit generated code directly. This is **NOT the preferred way**, but when necessary:
+Before editing a generated file directly, check the two extension mechanisms offered by the template — they keep the file under generator control and survive future template upgrades:
+
+1. **Generator parameter** — some aspects of generation are controlled via `generator-parameter.properties` (see `deployment/build-process.md` → *When to Check Templates Instead of Patching*).
+2. **Fragment extension point** — most `pom.xml`, `feature.xml`, and similar files expose named fragments you can fill in by dropping a file under `application/generator-overrides/<fragment-path>`. Look for paired marker comments such as
+   ```xml
+   <!-- To define create 'app/pom.xml.extra-dependencies.fragment.hbs' file -->
+   <!-- End of 'app/pom.xml.extra-dependencies.fragment.hbs' -->
+   ```
+   See `deployment/build-process.md` → *Extending Generated Files via Fragment Overrides* for the full list and a worked example.
+
+Only if neither mechanism offers a hook should you fall back to editing the generated file directly. This is **NOT the preferred way**, but when necessary:
 
 1. **Edit the generated file** with your changes
 2. **Add to `.generator-ignore`** to protect it from regeneration

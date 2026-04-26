@@ -75,6 +75,6 @@
 
 ## 10. Final wiring
 
-- [ ] 10.1 Single git commit for the first sync (separate from script + manifest commit) so reviewers can read the content delta on its own
+- [x] 10.1 Single git commit for the first sync (separate from script + manifest commit) so reviewers can read the content delta on its own
 - [x] 10.2 Confirm `openspec validate sync-agent-docs-from-upstream` passes
 - [x] 10.3 Confirm `openspec verify` (or equivalent) passes after archive-time sync of specs

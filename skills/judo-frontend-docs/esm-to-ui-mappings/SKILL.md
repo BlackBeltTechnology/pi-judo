@@ -1,3 +1,11 @@
+---
+name: judo-frontend-esm-to-ui-docs
+description: ESM-to-UI mapping reference for JUDO React frontends. Covers widget mappings, table and navigation element mappings, and the ESM→UI transformation model.
+disable-model-invocation: false
+user-invocable: false
+agent: general-purpose
+---
+
 # ESM to UI Mapping: Overview
 
 **[◄ Frontend](../SKILL.md)** | **[Widgets ►](./widgets.md)**

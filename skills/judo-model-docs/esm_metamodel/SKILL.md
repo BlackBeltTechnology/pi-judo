@@ -1,3 +1,13 @@
+---
+name: judo-model-esm-metamodel-docs
+description: ESM metamodel reference for JUDO. Covers namespace, type, structure, operation, accesspoint, UI, UI-behaviour, and UI-visual-styleguide packages with element-level attribute and constraint definitions.
+disable-model-invocation: false
+user-invocable: false
+model: inherit
+context: fork
+agent: general-purpose
+---
+
 # ESM Metamodel Documentation Index
 
 Welcome to the detailed documentation for the Editor Specific Model (ESM) metamodel. This documentation is structured to be easily parsed and navigated by agentic LLM coders, providing a clear and modular breakdown of every component in the `esm.ecore` definition.

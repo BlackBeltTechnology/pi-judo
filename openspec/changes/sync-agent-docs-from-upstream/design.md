@@ -180,25 +180,30 @@ Edge cases:
 **Variable substitution:** `model.name` and `projectPostfix` come from
 manifest `context`.
 
-### D4. README.md.hbs → SKILL.md (with frontmatter)
+### D4. README.md.hbs → SKILL.md (frontmatter source)
 
-For each scope and sub-hub, the script:
+The renderer renders **every file** (README and non-README) in full
+through Handlebars, then determines how to emit the frontmatter:
 
-1. Renders the body of `<scope>/README.md.hbs`.
-2. Reads the matching `frontmatter:` block from the manifest.
-3. Emits `skills/<skill-path>/SKILL.md` as
-   `---\n<yaml frontmatter>\n---\n\n<rendered body>`.
+**Case A — upstream file begins with `---\n` (has built-in frontmatter):**
+The frontmatter passes through Handlebars unchanged (it contains no
+`{{ }}` expressions) and leads the output. This covers most scope
+READMEs (`backend`, `frontend`, `integration-testing`, …) and the
+specially-tagged `access-and-derived-testing.md.hbs`.
 
-For files listed in `preserve-upstream-frontmatter`, the script:
+**Case B — upstream README does NOT begin with `---\n` (no built-in
+frontmatter):**
+The renderer checks the manifest for a `frontmatter:` block on the
+matching `sub-hubs.<id>` (or `scopes.<name>`) entry. If found, it
+serialises that block as YAML and prepends it. This covers
+`model/esm_metamodel/README.md.hbs` and
+`frontend/esm-to-ui-mappings/README.md.hbs`, which have no upstream
+frontmatter and need manifest-supplied metadata so the resulting
+SKILL.md files are properly configured as pi-judo skills.
 
-1. Detects the leading `---\n…\n---\n` block in the upstream `.hbs`.
-2. Renders only the body below it.
-3. Concatenates upstream frontmatter + rendered body into the target
-   file.
-
-This way `access-and-derived-testing.md.hbs` keeps its upstream-
-authored frontmatter exactly, and the script is purely additive on
-hand-tagged files.
+**No `preserve-upstream-frontmatter:` list in manifest.** The
+auto-detection by leading `---\n` is simpler and handles all current
+cases without an explicit inclusion list.
 
 ### D5. Idempotency and validation
 

@@ -107,39 +107,54 @@ The renderer SHALL leave Handlebars-escaped expressions of the form
 - **THEN** the rendered output contains ``sx={{ color: '#1976d2' }}``
   inside the same code fence
 
-### Requirement: README.md.hbs rendering as SKILL.md with manifest frontmatter
+### Requirement: README.md.hbs rendering as SKILL.md
 
 For each scope and sub-hub, the renderer SHALL emit a `SKILL.md`
-file consisting of (a) the YAML frontmatter from the manifest, and
-(b) the rendered body of the upstream `README.md.hbs`.
+file by rendering `README.md.hbs` through Handlebars. Frontmatter
+is sourced as follows:
 
-#### Scenario: Scope README is rendered
-- **WHEN** `agent-docs/<scope>/README.md.hbs` exists
-- **AND** the manifest has a `frontmatter:` block for `<scope>`
+- **Upstream frontmatter present** (upstream `README.md.hbs` begins
+  with `---\n`): the frontmatter passes through Handlebars unchanged
+  and leads the output.
+- **Upstream frontmatter absent** (upstream README has no `---\n`
+  header): the renderer SHALL look up a `frontmatter:` block in the
+  matching manifest entry (scope or sub-hub). If found, it is
+  serialised as YAML and prepended. If absent, the SKILL.md is
+  emitted without a frontmatter header.
+
+#### Scenario: Scope README with upstream frontmatter is rendered
+- **WHEN** `agent-docs/<scope>/README.md.hbs` begins with `---\n`
 - **THEN** the output `skills/<skill-name>/SKILL.md` starts with
-  `---\n<yaml>\n---\n\n`
+  `---\n<upstream yaml>\n---\n\n`
 - **AND** the rendered body of the README follows the frontmatter
 
-#### Scenario: Frontmatter missing for a mapped scope
-- **WHEN** the manifest maps a scope but provides no `frontmatter:`
-  block
-- **THEN** the script exits non-zero with an error naming the scope
+#### Scenario: Sub-hub README without upstream frontmatter uses manifest entry
+- **WHEN** a sub-hub's `README.md.hbs` does NOT begin with `---\n`
+- **AND** the manifest's `sub-hubs.<id>.frontmatter:` block is set
+- **THEN** the output `skills/<skill-path>/SKILL.md` starts with
+  `---\n<manifest yaml>\n---\n\n`
+- **AND** the rendered body follows
 
-### Requirement: Preserve upstream-authored frontmatter
+### Requirement: Upstream frontmatter passes through unchanged
 
-The renderer SHALL preserve any upstream-authored YAML frontmatter for files listed in the manifest's `preserve-upstream-frontmatter:` section, by detecting the leading `---\n…\n---` block in the upstream `.hbs` and emitting it unchanged at the top of the rendered output.
+The renderer SHALL auto-detect and preserve any YAML frontmatter block
+(`---\n…\n---`) found at the start of an upstream `.md.hbs` file,
+emitting it unchanged at the top of the output. No explicit per-file
+listing is required; detection is by checking whether the raw file
+content begins with `---\n`.
 
-#### Scenario: Preserve upstream frontmatter
-- **WHEN** the file is listed in `preserve-upstream-frontmatter:`
-- **AND** the upstream file begins with `---\n...---\n`
-- **THEN** the rendered output begins with that exact frontmatter
-  block, unmodified
+#### Scenario: Non-README file with upstream frontmatter
+- **WHEN** a non-README upstream file (e.g.
+  `integration-testing/access-and-derived-testing.md.hbs`) begins
+  with `---\n`
+- **THEN** the rendered output begins with that exact YAML block,
+  unmodified by the renderer
 - **AND** the body below is rendered through Handlebars normally
 
-#### Scenario: Preserve listing references a file without frontmatter
-- **WHEN** the file is listed in `preserve-upstream-frontmatter:`
-  but does not begin with `---\n`
-- **THEN** the script exits non-zero with a clear error
+#### Scenario: Non-README file without frontmatter
+- **WHEN** a non-README upstream file does not begin with `---\n`
+- **THEN** the rendered output contains no frontmatter header;
+  only the rendered body is written
 
 ### Requirement: Idempotent renders
 

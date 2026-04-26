@@ -16,6 +16,7 @@ import {
   normalizeOutput,
   buildDocLink,
   buildLocalHubLink,
+  resolveManifestFrontmatter,
   fileIndex,
   hubLookup,
   buildHubLookup,
@@ -329,5 +330,36 @@ describe('missing manifest entry', () => {
       () => classifyFile('unknown-scope/file.md.hbs', manifest),
       /Unknown top-level directory.*unknown-scope/,
     );
+  });
+});
+
+// ─── resolveManifestFrontmatter ─────────────────────────────────────────────────────────────────────
+
+describe('resolveManifestFrontmatter', () => {
+  it('returns null when no frontmatter on scope entry', () => {
+    const manifest = minimalManifest();
+    const c = classifyFile('backend/README.md.hbs', manifest)!;
+    assert.strictEqual(resolveManifestFrontmatter(c, manifest), null);
+  });
+
+  it('returns frontmatter when sub-hub has one', () => {
+    const manifest = minimalManifest();
+    const fm = { name: 'judo-frontend-hooks-docs', description: 'Hook docs', agent: 'general-purpose' };
+    manifest['sub-hubs']['frontend-hooks'].frontmatter = fm;
+    // Classify the sub-hub README
+    const c = classifyFile('frontend/hooks/README.md.hbs', manifest)!;
+    assert.deepStrictEqual(resolveManifestFrontmatter(c, manifest), fm);
+  });
+
+  it('returns null when sub-hub has no frontmatter', () => {
+    const manifest = minimalManifest();
+    const c = classifyFile('frontend/hooks/README.md.hbs', manifest)!;
+    assert.strictEqual(resolveManifestFrontmatter(c, manifest), null);
+  });
+
+  it('returns null for non-hub files regardless', () => {
+    const manifest = minimalManifest();
+    const c = classifyFile('backend/custom-operations.md.hbs', manifest)!;
+    assert.strictEqual(resolveManifestFrontmatter(c, manifest), null);
   });
 });

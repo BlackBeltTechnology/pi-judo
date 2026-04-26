@@ -51,13 +51,34 @@ sub-hubs:
 
   # No localHubLink id needed for these two — they're only referenced by
   # docLink path resolution, not by localHubLink.
+  # Their upstream READMEs have no built-in frontmatter, so we supply it here.
   frontend-esm-to-ui:
     upstream-path: frontend/esm-to-ui-mappings
     skill-path: judo-frontend-docs/esm-to-ui-mappings
+    frontmatter:
+      name: judo-frontend-esm-to-ui-docs
+      description: >-
+        ESM-to-UI mapping reference for JUDO React frontends. Covers widget
+        mappings, table and navigation element mappings, and the ESM→UI
+        transformation model.
+      disable-model-invocation: false
+      user-invocable: false
+      agent: general-purpose
 
   esm-metamodel:
     upstream-path: model/esm_metamodel
     skill-path: judo-model-docs/esm_metamodel
+    frontmatter:
+      name: judo-model-esm-metamodel-docs
+      description: >-
+        ESM metamodel reference for JUDO. Covers namespace, type, structure,
+        operation, accesspoint, UI, UI-behaviour, and UI-visual-styleguide
+        packages with element-level attribute and constraint definitions.
+      disable-model-invocation: false
+      user-invocable: false
+      model: inherit
+      context: fork
+      agent: general-purpose
 
 # Glob patterns (relative to agent-docs root) for files to skip entirely.
 # Supports * (within a segment) and ** (any depth).

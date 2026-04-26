@@ -28,11 +28,17 @@ import { fileURLToPath } from 'node:url';
 
 interface ScopeEntry {
   skill: string;
+  /** Optional manifest-supplied YAML frontmatter, emitted when the upstream
+   *  README.md.hbs has no built-in frontmatter block. */
+  frontmatter?: Record<string, unknown>;
 }
 
 interface SubHubEntry {
   'upstream-path': string; // e.g. "frontend/hooks"
   'skill-path': string;    // e.g. "judo-frontend-docs/hooks"
+  /** Optional manifest-supplied YAML frontmatter, emitted when the upstream
+   *  README.md.hbs has no built-in frontmatter block. */
+  frontmatter?: Record<string, unknown>;
 }
 
 export interface Manifest {
@@ -282,6 +288,26 @@ export function buildHubLookup(manifest: Manifest): void {
   }
 }
 
+/** Return the manifest-supplied frontmatter for a hub file, or null. */
+export function resolveManifestFrontmatter(
+  classification: FileClassification,
+  manifest: Manifest,
+): Record<string, unknown> | null {
+  // Check sub-hubs by matching destRel to the expected SKILL.md path
+  for (const subHub of Object.values(manifest['sub-hubs'] ?? {})) {
+    if (classification.destRel === `${subHub['skill-path']}/SKILL.md`) {
+      return subHub.frontmatter ?? null;
+    }
+  }
+  // Check scopes
+  for (const scopeEntry of Object.values(manifest.scopes ?? {})) {
+    if (classification.destRel === `${scopeEntry.skill}/SKILL.md`) {
+      return scopeEntry.frontmatter ?? null;
+    }
+  }
+  return null;
+}
+
 /** Walk upstream tree, classify all .md.hbs files, populate fileIndex. */
 export function discoverFiles(agentDocsRoot: string, manifest: Manifest): string[] {
   const dangles: string[] = [];
@@ -420,7 +446,22 @@ export function runSync(opts: {
       throw new Error(`Handlebars render error in ${classification.upstreamRel}: ${(err as Error).message}`);
     }
 
-    const output = normalizeOutput(rendered);
+    // For hub files (README → SKILL.md): if the upstream file has no built-in
+    // YAML frontmatter block, prepend manifest-supplied frontmatter instead.
+    // This covers sub-hubs like esm_metamodel and esm-to-ui-mappings whose
+    // upstream READMEs contain no ---...--- header.
+    let output: string;
+    if (classification.isHub && !rawContent.trimStart().startsWith('---\n')) {
+      const manifestFm = resolveManifestFrontmatter(classification, manifest);
+      if (manifestFm) {
+        const fmBlock = '---\n' + yaml.dump(manifestFm, { lineWidth: -1 }).trimEnd() + '\n---\n';
+        output = normalizeOutput(fmBlock + '\n' + rendered);
+      } else {
+        output = normalizeOutput(rendered);
+      }
+    } else {
+      output = normalizeOutput(rendered);
+    }
     const destRel = classification.destRel;
     const destPath = path.join(skillsRoot, destRel);
     renderedFiles.add(destRel);
@@ -529,11 +570,18 @@ function main(): void {
     console.log('✓  All skills are up to date.');
   }
 
-  if (lint) {
-    if (result.dangles.length) {
+  // Dangling links are fatal in all modes — they indicate upstream renames
+  // that have left broken references in the rendered skill pages.
+  if (result.dangles.length) {
+    if (lint) {
       console.log('\n✗  Lint failed: dangling links detected.');
-      process.exit(1);
+    } else {
+      console.log('\n✗  Sync failed: dangling links detected. Fix the upstream templates or update the manifest before syncing.');
     }
+    process.exit(1);
+  }
+
+  if (lint) {
     console.log('\n✓  Lint clean.');
   }
 
